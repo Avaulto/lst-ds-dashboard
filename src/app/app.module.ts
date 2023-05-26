@@ -8,7 +8,9 @@ import { HttpClientModule } from '@angular/common/http';
 import { VotesTableComponent } from './votes-table/votes-table.component';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MaterialExampleModule } from './material.module';
-
+import { inject } from '@vercel/analytics';
+ 
+inject();
 @NgModule({
   declarations: [
     AppComponent,
