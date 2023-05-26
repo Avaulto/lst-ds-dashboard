@@ -5,6 +5,7 @@ import { map, Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { ApiService } from './api.service';
 import { Votes } from '../models/votes.model';
+import { MarinadeTVL } from '../models/marinadeTVL.interface';
 
 @Injectable({
   providedIn: 'root',
@@ -13,6 +14,7 @@ export class MarinadeService {
   protected marinadeSnapshotAPI: string =
     'https://snapshots-api.marinade.finance/v1';
   constructor(private apiService: ApiService) {}
+  protected marinadeAPI: string = 'https://api.marinade.finance';
 
   private _formatErrors(error: any) {
     console.warn(error);
@@ -34,6 +36,16 @@ export class MarinadeService {
       .pipe(
         map((data) => {
           return data;
+        }),
+        catchError((error) => this._formatErrors(error))
+      );
+  }
+  public getPoolSize(): Observable<number>{
+    return this.apiService
+      .get(`${this.marinadeAPI}/tlv`)
+      .pipe(
+        map((data: MarinadeTVL) => {
+          return data.total_sol;
         }),
         catchError((error) => this._formatErrors(error))
       );

@@ -1,4 +1,3 @@
-
 <mat-form-field>
   <mat-label>Filter</mat-label>
   <input matInput (keyup)="applyFilter($event)" placeholder="search by any term" #input>
@@ -6,7 +5,7 @@
 <table mat-table [dataSource]="dataSource" matSort (matSortChange)="announceSortChange($event)"
   class="mat-elevation-z8">
 
-  <!-- Position Column -->
+
   <ng-container matColumnDef="tokenOwner">
     <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by wallet">
       wallet owner
@@ -14,7 +13,6 @@
     <td mat-cell *matCellDef="let element"> {{element.tokenOwner}} </td>
   </ng-container>
 
-  <!-- Name Column -->
   <ng-container matColumnDef="amount">
     <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by stake">
       stake amount
@@ -22,7 +20,7 @@
     <td mat-cell *matCellDef="let element"> {{element.amount}} </td>
   </ng-container>
 
-  <!-- Weight Column -->
+ 
   <ng-container matColumnDef="validatorVoteAccount">
     <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by vote address">
       validator vote key
@@ -30,6 +28,12 @@
     <td mat-cell *matCellDef="let element"> {{element.validatorVoteAccount}} </td>
   </ng-container>
 
+  <ng-container matColumnDef="directStake">
+    <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by stake">
+      stake disterbute the the validator
+    </th>
+    <td mat-cell *matCellDef="let element"> {{element.directStake}}</td>
+  </ng-container>
 
   <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
   <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
@@ -38,6 +42,9 @@
 <mat-paginator [pageSizeOptions]="[10, 15, 20]" showFirstLastButtons aria-label="Select page of periodic elements">
 </mat-paginator>
 
-<div id="snapshot-date">
+<div class="m-color">
   Vote Records Created At: {{snapshotCreatedAt}}
+</div>
+<div class="m-color">
+  stake ratio: 1/{{stakeRatio}}
 </div>

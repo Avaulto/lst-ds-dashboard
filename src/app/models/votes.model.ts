@@ -4,7 +4,7 @@ export interface Votes {
     voteRecordsCreatedAt: string;
   }
   interface Record {
-    amount: string | null;
+    amount: number;
     tokenOwner: string;
     validatorVoteAccount: string;
   }

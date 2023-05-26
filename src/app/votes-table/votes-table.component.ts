@@ -34,7 +34,7 @@ const ELEMENT_DATA: PeriodicElement[] = [
   templateUrl: 'votes-table.component.html',
 })
 export class VotesTableComponent implements AfterViewInit {
-  displayedColumns: string[] = ['tokenOwner', 'amount', 'validatorVoteAccount'];
+  displayedColumns: string[] = ['tokenOwner', 'amount', 'validatorVoteAccount','directStake'];
   dataSource: any //= new MatTableDataSource(ELEMENT_DATA);
   snapshotCreatedAt: Date | any= null
   constructor(private _liveAnnouncer: LiveAnnouncer, private _marinadeService:MarinadeService) {}
@@ -44,8 +44,17 @@ export class VotesTableComponent implements AfterViewInit {
  async ngAfterViewInit() {
    const votes:Votes = await firstValueFrom(this._marinadeService.getVotes())
    this.snapshotCreatedAt = new Date(votes.voteRecordsCreatedAt).toDateString()
-   console.log(votes)
-   this.dataSource = new MatTableDataSource(votes.records)
+   const totalPoolSize = await firstValueFrom(this._marinadeService.getPoolSize());
+
+    const totalDirectStake =  votes.records.filter(record => record.amount).reduce(
+      (accumulator, currentValue) => accumulator + Number(currentValue.amount),
+      0
+    );
+   console.log(totalDirectStake)
+   const control = votes.records.filter(record => record.amount).map(record => {
+    return {...record, directStake: this.calcVotePower(totalDirectStake, record.amount, totalPoolSize).toFixed(2)}
+   })
+   this.dataSource = new MatTableDataSource(control)
    this.dataSource.paginator = this.paginator;
    this.dataSource.sort = this.sort;
   }
@@ -62,5 +71,24 @@ export class VotesTableComponent implements AfterViewInit {
     const filterValue = (event.target as HTMLInputElement).value;
     this.dataSource.filter = filterValue.trim().toLowerCase();
 
+  }
+  public stakeRatio: string ="";
+  public calcVotePower(totalDirectStake: number, directStake: number, poolSize: number): number{
+    // how much % the DS control
+    const voteControlPoolSize = 0.2;
+    // how much SOL the votes control
+    const totalControl = poolSize * voteControlPoolSize;
+    // how much % each stake control out of the total ds
+    const singleStakeControlInPercentage = directStake / totalDirectStake 
+    // how much total SOL the validator will recive 
+    const totalSOLForTheValidator = singleStakeControlInPercentage * totalControl;
+    this.stakeRatio = (totalSOLForTheValidator / directStake).toFixed(2)
+    console.log(
+      'total direct stake:', totalDirectStake, 
+      'total stake to distribute:', totalControl,
+      'direct stake:',directStake,
+     'percentage in the pool:', singleStakeControlInPercentage,
+     'how much sol the vote control:', totalSOLForTheValidator)
+     return totalSOLForTheValidator
   }
 }
