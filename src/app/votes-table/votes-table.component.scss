@@ -2,9 +2,37 @@ table {
   width: 100%;
 }
 
-th.mat-sort-header-sorted {
-  color: black;
+tr.example-detail-row {
+  height: 0;
 }
+
+tr.example-element-row:not(.example-expanded-row):hover {
+  background: whitesmoke;
+}
+
+tr.example-element-row:not(.example-expanded-row):active {
+  background: #efefef;
+}
+
+.example-element-row td {
+  border-bottom-width: 0;
+}
+
+.example-element-detail {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.stake-break-down{
+  padding: 0 15px;
+  border-bottom: 1px solid lightblue;
+  margin: 10px;
+  display: flex;
+  justify-content: space-between;
+  flex-direction: column;
+}
+
 
 .m-color{
   color: #eb8302;

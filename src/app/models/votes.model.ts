@@ -3,9 +3,11 @@ export interface Votes {
     records: Record[];
     voteRecordsCreatedAt: string;
   }
-  interface Record {
+  export interface Record {
     amount: number;
     tokenOwner: string;
     validatorVoteAccount: string;
+    directStake: any;
+    breakDown:any[]
   }
   

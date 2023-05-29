@@ -3,63 +3,94 @@ import { AfterViewInit, Component, ViewChild } from '@angular/core';
 import { MatSort, Sort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { MarinadeService } from '../services/marinade.service';
-import { Votes } from '../models/votes.model';
+import { Record, Votes } from '../models/votes.model';
 import { firstValueFrom, lastValueFrom } from 'rxjs';
 import { MatPaginator } from '@angular/material/paginator';
+import { animate, state, style, transition, trigger } from '@angular/animations';
 
 
 @Component({
   selector: 'votes-table',
   styleUrls: ['votes-table.component.scss'],
   templateUrl: 'votes-table.component.html',
+  animations: [
+    trigger('detailExpand', [
+      state('collapsed', style({ height: '0px', minHeight: '0' })),
+      state('expanded', style({ height: '*' })),
+      transition('expanded <=> collapsed', animate('225ms cubic-bezier(0.4, 0.0, 0.2, 1)')),
+    ]),
+  ],
 })
 export class VotesTableComponent implements AfterViewInit {
-  displayedColumns: string[] = ['tokenOwner', 'amount', 'validatorVoteAccount', 'directStake'];
+  columnsToDisplay: string[] = ['Stake Amount', 'Validator Vote Account', 'Direct Stake'];
+  columnsToDisplayWithExpand = [...this.columnsToDisplay, 'expand'];
+  expandedElement: any;
   dataSource: any //= new MatTableDataSource(ELEMENT_DATA);
   snapshotCreatedAt: Date | any = null
+  public stakeRatio: string = "";
+  public totalDirectStake: number = 0
   constructor(private _liveAnnouncer: LiveAnnouncer, private _marinadeService: MarinadeService) { }
   @ViewChild(MatPaginator) paginator: MatPaginator | any;
   @ViewChild(MatSort) sort: MatSort | any;
 
-  columnsToDisplayWithExpand = [...this.displayedColumns, 'expand'];
-  expandedElement: any;
+
   async ngAfterViewInit() {
     const votes: Votes = await firstValueFrom(this._marinadeService.getVotes())
-    this.snapshotCreatedAt = new Date(votes.voteRecordsCreatedAt).toDateString()
     const totalPoolSize = await firstValueFrom(this._marinadeService.getPoolSize());
+    this.snapshotCreatedAt = votes.voteRecordsCreatedAt
 
     const totalDirectStake = votes.records.filter(record => record.amount).reduce(
       (accumulator, currentValue) => accumulator + Number(currentValue.amount),
       0
     );
-    console.log(totalDirectStake)
-    const control = votes.records.filter(record => record.amount).map(record => {
-      return { ...record, directStake: this.calcVotePower(totalDirectStake, record.amount, totalPoolSize).toFixed(2) }
+    this.totalDirectStake = totalDirectStake;
+    const extnedRecords: Record[] = votes.records.filter(record => record.amount).map(record => {
+      return { ...record, amount: Number(record.amount), directStake: this.calcVotePower(totalDirectStake, record.amount, totalPoolSize) }
     })
-    .sort((a, b) => b.amount - a.amount)
+     
 
-   
-    this.dataSource = new MatTableDataSource(control)
+    const mergeAndEvaluate = this.mergeDuplicateVoteAccount(extnedRecords) .sort((a, b) => b['Stake Amount'] - a['Stake Amount'])
+    this.dataSource = new MatTableDataSource(mergeAndEvaluate)
     this.dataSource.paginator = this.paginator;
     this.dataSource.sort = this.sort;
-
   }
 
+  private mergeDuplicateVoteAccount(records: Record[]) {
+    const mergeDuplications = Array.from(new Set(records.map(s => s.validatorVoteAccount)))
+      .map(validatorVoteAccount => {
+        return {
+          validatorVoteAccount,
+          data: records.filter(s => s.validatorVoteAccount === validatorVoteAccount)
+        }
+      })
+    const evaluteTotals = mergeDuplications.map(item => {
+      const amount = item.data.reduce(
+        (accumulator, currentValue) => accumulator + Number(currentValue.amount),
+        0
+      );
+      const directStake = item.data.reduce(
+        (accumulator, currentValue) => accumulator + Number(currentValue.directStake),
+        0
+      );
+      return { 'Stake Amount': amount, 'Direct Stake': directStake, 'Validator Vote Account': item.validatorVoteAccount, breakDown: item.data }
+    })
+    return evaluteTotals
+
+
+  }
   /** Announce the change in sort state for assistive technology. */
-  announceSortChange(sortState: Sort | any) {
-    console.log(sortState)
+  public announceSortChange(sortState: Sort | any): void {
     if (sortState.direction) {
       this._liveAnnouncer.announce(`Sorted ${sortState.direction}ending`);
     } else {
       this._liveAnnouncer.announce('Sorting cleared');
     }
   }
-  applyFilter(event: Event) {
+  public applyFilter(event: Event) {
     const filterValue = (event.target as HTMLInputElement).value;
     this.dataSource.filter = filterValue.trim().toLowerCase();
 
   }
-  public stakeRatio: string = "";
   public calcVotePower(totalDirectStake: number, directStake: number, poolSize: number): number {
     // how much % the DS control
     const voteControlPoolSize = 0.2;
