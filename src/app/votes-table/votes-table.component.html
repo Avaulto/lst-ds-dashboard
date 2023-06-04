@@ -51,7 +51,7 @@
 
 <mat-paginator [pageSizeOptions]="[10, 15, 20]" showFirstLastButtons aria-label="Select page of periodic elements">
 </mat-paginator>
-<mat-progress-bar mode="query"></mat-progress-bar>
+<mat-progress-bar  *ngIf="stakeRatio == ''" mode="query"></mat-progress-bar>
 
 <div class="m-color">
   Vote Records Created At: {{snapshotCreatedAt | date}}
