@@ -21,13 +21,14 @@ import { animate, state, style, transition, trigger } from '@angular/animations'
     ]),
   ],
 })
+
 export class VotesTableComponent implements AfterViewInit {
-  columnsToDisplay: string[] = ['Stake Amount', 'Validator Vote Account', 'Direct Stake'];
+  columnsToDisplay: string[] = ['Stake Amount', 'Validator', 'Direct Stake'];
   columnsToDisplayWithExpand = [...this.columnsToDisplay, 'expand'];
   expandedElement: any;
   dataSource: any //= new MatTableDataSource(ELEMENT_DATA);
   snapshotCreatedAt: Date | any = null
-  public stakeRatio: string = "";
+  public stakeRatio: any = "";
   public totalDirectStake: number = 0
   constructor(private _liveAnnouncer: LiveAnnouncer, private _marinadeService: MarinadeService) { }
   @ViewChild(MatPaginator) paginator: MatPaginator | any;
@@ -45,10 +46,9 @@ export class VotesTableComponent implements AfterViewInit {
     );
     this.totalDirectStake = totalDirectStake;
     const extnedRecords: Record[] = votes.records.filter(record => record.amount).map(record => {
-      return { ...record, amount: Number(record.amount), directStake: this.calcVotePower(totalDirectStake, record.amount, totalPoolSize) }
+      return { ...record, amount: Number(record.amount),validatorName:record.validatorName, directStake: this.calcVotePower(totalDirectStake, record.amount, totalPoolSize) }
     })
      
-
     const mergeAndEvaluate = this.mergeDuplicateVoteAccount(extnedRecords) .sort((a, b) => b['Stake Amount'] - a['Stake Amount'])
     this.dataSource = new MatTableDataSource(mergeAndEvaluate)
     this.dataSource.paginator = this.paginator;
@@ -57,12 +57,14 @@ export class VotesTableComponent implements AfterViewInit {
 
   private mergeDuplicateVoteAccount(records: Record[]) {
     const mergeDuplications = Array.from(new Set(records.map(s => s.validatorVoteAccount)))
-      .map(validatorVoteAccount => {
+      .map((validatorVoteAccount, i) => {
         return {
           validatorVoteAccount,
+          // name: mergeDuplications[i].name,
           data: records.filter(s => s.validatorVoteAccount === validatorVoteAccount)
         }
       })
+      console.log(mergeDuplications)
     const evaluteTotals = mergeDuplications.map(item => {
       const amount = item.data.reduce(
         (accumulator, currentValue) => accumulator + Number(currentValue.amount),
@@ -72,7 +74,7 @@ export class VotesTableComponent implements AfterViewInit {
         (accumulator, currentValue) => accumulator + Number(currentValue.directStake),
         0
       );
-      return { 'Stake Amount': amount, 'Direct Stake': directStake, 'Validator Vote Account': item.validatorVoteAccount, breakDown: item.data }
+      return { 'Stake Amount': amount, 'Direct Stake': directStake, 'Validator': item.data[0].validatorName || item.data[0].validatorVoteAccount, breakDown: item.data }
     })
     return evaluteTotals
 
@@ -100,7 +102,7 @@ export class VotesTableComponent implements AfterViewInit {
     const singleStakeControlInPercentage = directStake / totalDirectStake
     // how much total SOL the validator will recive 
     const totalSOLForTheValidator = singleStakeControlInPercentage * totalControl;
-    this.stakeRatio = (totalSOLForTheValidator / directStake).toFixed(2)
+    this.stakeRatio = (totalSOLForTheValidator / directStake)
     // console.log(
     //   'total direct stake:', totalDirectStake,
     //   'total stake to distribute:', totalControl,

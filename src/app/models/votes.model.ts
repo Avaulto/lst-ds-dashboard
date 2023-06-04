@@ -6,6 +6,7 @@ export interface Votes {
   export interface Record {
     amount: number;
     tokenOwner: string;
+    validatorName?:string;
     validatorVoteAccount: string;
     directStake: any;
     breakDown:any[]
