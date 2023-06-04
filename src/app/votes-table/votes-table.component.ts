@@ -30,7 +30,9 @@ export class VotesTableComponent implements AfterViewInit {
   snapshotCreatedAt: Date | any = null
   public stakeRatio: any = "";
   public totalDirectStake: number = 0
-  constructor(private _liveAnnouncer: LiveAnnouncer, private _marinadeService: MarinadeService) { }
+  constructor(
+    private _liveAnnouncer: LiveAnnouncer,
+     private _marinadeService: MarinadeService) { }
   @ViewChild(MatPaginator) paginator: MatPaginator | any;
   @ViewChild(MatSort) sort: MatSort | any;
 
@@ -64,7 +66,6 @@ export class VotesTableComponent implements AfterViewInit {
           data: records.filter(s => s.validatorVoteAccount === validatorVoteAccount)
         }
       })
-      console.log(mergeDuplications)
     const evaluteTotals = mergeDuplications.map(item => {
       const amount = item.data.reduce(
         (accumulator, currentValue) => accumulator + Number(currentValue.amount),
