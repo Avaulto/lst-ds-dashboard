@@ -42,6 +42,9 @@ tr.example-element-row:not(.example-expanded-row):active {
   font-weight: 600;
 }
 
+mat-form-field{
+  margin-inline-end: 8px;
+}
 ::ng-deep{
 
   .mdc-linear-progress__bar-inner {

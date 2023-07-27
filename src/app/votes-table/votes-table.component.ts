@@ -39,6 +39,11 @@ export class VotesTableComponent implements AfterViewInit {
 
   async ngAfterViewInit() {
     const votes: Votes = await firstValueFrom(this._marinadeService.getVotes())
+
+    this._handleVotes(votes)
+  }
+  private async _handleVotes(votes: Votes){
+    // const votes: Votes = await firstValueFrom(this._marinadeService.getVotes())
     const totalPoolSize = await firstValueFrom(this._marinadeService.getPoolSize());
     this.snapshotCreatedAt = votes.voteRecordsCreatedAt
 
@@ -56,7 +61,6 @@ export class VotesTableComponent implements AfterViewInit {
     this.dataSource.paginator = this.paginator;
     this.dataSource.sort = this.sort;
   }
-
   private mergeDuplicateVoteAccount(records: Record[]) {
     const mergeDuplications = Array.from(new Set(records.map(s => s.validatorVoteAccount)))
       .map((validatorVoteAccount, i) => {
@@ -104,12 +108,14 @@ export class VotesTableComponent implements AfterViewInit {
     // how much total SOL the validator will recive 
     const totalSOLForTheValidator = singleStakeControlInPercentage * totalControl;
     this.stakeRatio = (totalSOLForTheValidator / directStake)
-    // console.log(
-    //   'total direct stake:', totalDirectStake,
-    //   'total stake to distribute:', totalControl,
-    //   'direct stake:', directStake,
-    //   'percentage in the pool:', singleStakeControlInPercentage,
-    //   'how much sol the vote control:', totalSOLForTheValidator)
     return totalSOLForTheValidator
+  }
+
+  async searchByDate(ev:any){
+    this.stakeRatio = "";
+    const date = ev.value
+    const votes: Votes = await firstValueFrom(this._marinadeService.getVotes(date))
+
+    this._handleVotes(votes)
   }
 }

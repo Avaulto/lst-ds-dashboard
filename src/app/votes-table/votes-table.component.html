@@ -2,6 +2,14 @@
   <mat-label>Filter</mat-label>
   <input matInput (keyup)="applyFilter($event)" placeholder="search by any term" #input>
 </mat-form-field>
+<mat-form-field appearance="fill">
+  <mat-label>Find snapshot</mat-label>
+  <input matInput (dateChange)="searchByDate($event)" [matDatepicker]="picker">
+  <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+  <mat-datepicker #picker (yearSelected)="searchByDate($event)"></mat-datepicker>
+</mat-form-field>
+
+
 <table mat-table
  multiTemplateDataRows
  [dataSource]="dataSource"

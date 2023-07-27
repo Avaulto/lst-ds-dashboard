@@ -22,16 +22,30 @@ export class MarinadeService {
     return throwError(() => error);
   }
 
-  public getVotes(): Observable<Votes> {
-    return this.apiService.get(`${this.marinadeSnapshotAPI}/votes/msol/latest`).pipe(
+  public getVotes(date?: string): Observable<Votes> {
+    let searchBy = ''
+    if(date){
+      const selectedDate = new Date(date).toISOString().split("T")[0]
+      const oneDayAgo = new Date(new Date().setDate(new Date(date).getDate() - 1)).toISOString().split("T")[0];
+      searchBy = `all?startDate=${oneDayAgo}&endDate=${selectedDate}`
+    }else{
+      searchBy = 'latest'
+    }
+    return this.apiService.get(`${this.marinadeSnapshotAPI}/votes/msol/${searchBy}`).pipe(
       switchMap(async (snapshot:Votes) =>{
         const validators = await firstValueFrom(this.apiService.get(this.stakeWizApi))
         // console.log(validators)
-        const updateSnapshot = snapshot.records.map(record => {
+        let pointer;
+        if(date){
+          pointer = snapshot.snapshots[0] as Votes
+        }else{
+          pointer = snapshot
+        }
+        let updateSnapshot = pointer.records.map(record => {
           const findValidatorName = validators.find((v:any) => v.vote_identity == record.validatorVoteAccount).name 
           return {...record, validatorName:findValidatorName}
         })
-        return {...snapshot,records:updateSnapshot}
+        return {...pointer,records:updateSnapshot}
       }),
       map((data) => {
         return data;
@@ -40,17 +54,6 @@ export class MarinadeService {
     );
   }
 
-  public getMSOL_balance(pubkey: string): Observable<Votes> {
-    return this.apiService
-      .get(`${this.marinadeSnapshotAPI}/snapshot/latest/msol/${pubkey}`)
-      .pipe(
-        map( (data) => {
-
-          return data;
-        }),
-        catchError((error) => this._formatErrors(error))
-      );
-  }
   public getPoolSize(): Observable<number>{
     return this.apiService
       .get(`${this.marinadeAPI}/tlv`)
