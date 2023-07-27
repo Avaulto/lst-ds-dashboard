@@ -23,6 +23,7 @@ import { animate, state, style, transition, trigger } from '@angular/animations'
 })
 
 export class VotesTableComponent implements AfterViewInit {
+  public today = new Date(); 
   columnsToDisplay: string[] = ['Stake Amount', 'Validator', 'Direct Stake'];
   columnsToDisplayWithExpand = [...this.columnsToDisplay, 'expand'];
   expandedElement: any;

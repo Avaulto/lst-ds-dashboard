@@ -25,8 +25,8 @@ export class MarinadeService {
   public getVotes(date?: string): Observable<Votes> {
     let searchBy = ''
     if(date){
-      const selectedDate = new Date(date).toISOString().split("T")[0]
-      const oneDayAgo = new Date(new Date().setDate(new Date(date).getDate() - 1)).toISOString().split("T")[0];
+      const selectedDate = new Date(new Date().setDate(new Date(date).getDate() +1)).toISOString().split("T")[0]
+      const oneDayAgo = new Date(new Date().setDate(new Date(date).getDate() )).toISOString().split("T")[0];
       searchBy = `all?startDate=${oneDayAgo}&endDate=${selectedDate}`
     }else{
       searchBy = 'latest'
