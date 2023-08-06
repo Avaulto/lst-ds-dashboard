@@ -7,6 +7,7 @@ table {
 }
 #filters {
   flex: 1;
+  display: flex;
 }
 #meta-data {
   display: flex;
@@ -65,5 +66,11 @@ mat-form-field{
 
   .mdc-linear-progress__bar-inner {
     border-color: #13cfc6 !important;
+  }
+}
+
+@media only screen and (max-width: 600px) {
+  #header {
+    display: block;
   }
 }

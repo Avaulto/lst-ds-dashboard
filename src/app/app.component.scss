@@ -10,20 +10,19 @@ h1{
     margin: 0 auto;
 }
 #love {
-    position: fixed;
     color: #fff;
     width: 200px;
     bottom: 24px;
-    margin: 0 auto;
-    left: 0;
-    right: 0;
+    margin: 100px auto;
     display: flex;
     text-transform: uppercase;
     align-items: center;
     justify-content: center;
     flex-direction: column;
+    font-size: 14px;
+    text-transform: capitalize;
     filter: drop-shadow(2px 4px 6px black);
     img{
-        width: 70px;
+        width: 60px;
     }
 }

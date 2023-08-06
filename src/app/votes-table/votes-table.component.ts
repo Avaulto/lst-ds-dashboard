@@ -8,6 +8,7 @@ import { firstValueFrom, lastValueFrom } from 'rxjs';
 import { MatPaginator } from '@angular/material/paginator';
 import { animate, state, style, transition, trigger } from '@angular/animations';
 import { SolblazeService } from '../services/solblaze.service';
+import { ActivatedRoute } from '@angular/router';
 
 
 @Component({
@@ -37,16 +38,24 @@ export class VotesTableComponent implements AfterViewInit {
     private _liveAnnouncer: LiveAnnouncer,
      private _marinadeService: MarinadeService,
      private _solblazeService:SolblazeService,
-     
+
      ) { }
   @ViewChild(MatPaginator) paginator: MatPaginator | any;
   @ViewChild(MatSort) sort: MatSort | any;
 
-
+  public defaultPoolName = '';
+  public queryURL: boolean = false;
   async ngAfterViewInit() {
-    const votes: Votes = await firstValueFrom(this._marinadeService.getVotes())
-
-    this._handleVotes(votes, 'marinade')
+    const queryString = window.location.search;
+    const urlParams = new URLSearchParams(queryString);
+    const pool = urlParams.get('pool')
+    if(pool){
+      this.defaultPoolName = pool
+      this.queryURL = true;
+    }else{
+      this.defaultPoolName = 'marinade'
+    }
+   this.renderPoolData(this.defaultPoolName)
   }
   private async _handleVotes(votes: Votes, poolName: string){
     // const votes: Votes = await firstValueFrom(this._marinadeService.getVotes())
@@ -134,11 +143,10 @@ export class VotesTableComponent implements AfterViewInit {
 
     this._handleVotes(votes,'marinade')
   }
-  public currentPoolName = 'marinade'
+
   public async renderPoolData(poolName: string){
     this.loader = true
     this.dataSource = []
-    this.currentPoolName = poolName
     if(poolName === 'marinade'){
       const votes: Votes = await firstValueFrom(this._marinadeService.getVotes())
       this._handleVotes(votes, 'marinade')

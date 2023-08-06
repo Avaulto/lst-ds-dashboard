@@ -1,4 +1,4 @@
-<app-pools-menu (onSelectPool)="renderPoolData($event)"></app-pools-menu>
+<app-pools-menu *ngIf="!this.queryURL" (onSelectPool)="renderPoolData($event)"></app-pools-menu>
 <div id="header">
   <div id="filters">
 
@@ -7,7 +7,7 @@
       <input matInput (keyup)="applyFilter($event)" placeholder="search by any term" #input>
     </mat-form-field>
 
-    <mat-form-field appearance="fill" *ngIf="currentPoolName === 'marinade'">
+    <mat-form-field appearance="fill" *ngIf="defaultPoolName === 'marinade'">
       <mat-label>Find snapshot</mat-label>
       <input matInput (dateChange)="searchByDate($event)" [matDatepicker]="picker" [max]="today">
       <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
@@ -16,7 +16,7 @@
   </div>
   <div id="meta-data">
 
-    <div class="p-color" *ngIf="currentPoolName === 'marinade'">
+    <div class="p-color" *ngIf="defaultPoolName === 'marinade'">
       <span>Vote Records Created At: </span>
       {{snapshotCreatedAt | date}}
     </div>
