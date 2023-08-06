@@ -53,7 +53,6 @@ export class MarinadeService {
           voteRecordsCreatedAt:pointer.voteRecordsCreatedAt,
           // snapshots: null // only on ranges query
         }
-        console.log(votes)
         return votes
       }),
       map((data) => {
