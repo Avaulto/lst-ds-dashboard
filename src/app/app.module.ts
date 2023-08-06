@@ -9,11 +9,13 @@ import { VotesTableComponent } from './votes-table/votes-table.component';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MaterialExampleModule } from './material.module';
 import { inject } from '@vercel/analytics';
+import { PoolsMenuComponent } from './pools-menu/pools-menu.component';
  
 inject();
 @NgModule({
   declarations: [
     AppComponent,
+    PoolsMenuComponent,
     VotesTableComponent,
   ],
   imports: [

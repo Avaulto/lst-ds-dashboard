@@ -2,9 +2,28 @@
 h1{
     text-align: center;
     text-transform: capitalize;
+    padding-top: 20px;
 }
 #container {
     width: 1200px;
     max-width: 100%;
     margin: 0 auto;
+}
+#love {
+    position: fixed;
+    color: #fff;
+    width: 200px;
+    bottom: 24px;
+    margin: 0 auto;
+    left: 0;
+    right: 0;
+    display: flex;
+    text-transform: uppercase;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    filter: drop-shadow(2px 4px 6px black);
+    img{
+        width: 70px;
+    }
 }

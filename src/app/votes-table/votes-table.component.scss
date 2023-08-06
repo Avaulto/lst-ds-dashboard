@@ -1,7 +1,19 @@
 table {
   width: 100%;
 }
-
+#header{
+  display: flex;
+  justify-content: space-between;
+}
+#filters {
+  flex: 1;
+}
+#meta-data {
+  display: flex;
+  flex: 1;
+  text-align: center;
+  justify-content: space-between;
+}
 tr.example-detail-row {
   height: 0;
 }
@@ -34,8 +46,12 @@ tr.example-element-row:not(.example-expanded-row):active {
 }
 
 
-.m-color{
-  color: #eb8302;
+.p-color{
+  span{
+    color: black;
+    display: block;
+  }
+  color: #13cfc6;
   margin-top: 10px;
   text-transform: capitalize;
   font-size: 18px;
@@ -48,6 +64,6 @@ mat-form-field{
 ::ng-deep{
 
   .mdc-linear-progress__bar-inner {
-    border-color: #eb8302 !important;
+    border-color: #13cfc6 !important;
   }
 }

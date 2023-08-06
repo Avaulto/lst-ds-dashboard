@@ -1,0 +1,27 @@
+:host{
+    margin-block-end: 10px;
+    display: block;
+}
+.pool-btn{
+    background: white;
+    margin-inline-end: 15px;
+    div{
+        display: flex;
+        align-items: center;
+        justify-content: space-around;
+        color: black;
+    }
+    span{
+        margin-inline: 5px;
+    }
+    img {
+        width: 30px;
+    }
+}
+#marinade-button.selected{
+    background-color: #c8ece1;
+}
+
+#solblaze-button.selected{
+    background-color: #70eeff;
+}

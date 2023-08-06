@@ -3,10 +3,11 @@ import { AfterViewInit, Component, ViewChild } from '@angular/core';
 import { MatSort, Sort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { MarinadeService } from '../services/marinade.service';
-import { Record, Votes } from '../models/votes.model';
+import { Record, Votes } from '../models/votes';
 import { firstValueFrom, lastValueFrom } from 'rxjs';
 import { MatPaginator } from '@angular/material/paginator';
 import { animate, state, style, transition, trigger } from '@angular/animations';
+import { SolblazeService } from '../services/solblaze.service';
 
 
 @Component({
@@ -27,13 +28,17 @@ export class VotesTableComponent implements AfterViewInit {
   columnsToDisplay: string[] = ['Stake Amount', 'Validator', 'Direct Stake'];
   columnsToDisplayWithExpand = [...this.columnsToDisplay, 'expand'];
   expandedElement: any;
+  loader: boolean = true;
   dataSource: any //= new MatTableDataSource(ELEMENT_DATA);
   snapshotCreatedAt: Date | any = null
   public stakeRatio: any = "";
   public totalDirectStake: number = 0
   constructor(
     private _liveAnnouncer: LiveAnnouncer,
-     private _marinadeService: MarinadeService) { }
+     private _marinadeService: MarinadeService,
+     private _solblazeService:SolblazeService,
+     
+     ) { }
   @ViewChild(MatPaginator) paginator: MatPaginator | any;
   @ViewChild(MatSort) sort: MatSort | any;
 
@@ -41,9 +46,9 @@ export class VotesTableComponent implements AfterViewInit {
   async ngAfterViewInit() {
     const votes: Votes = await firstValueFrom(this._marinadeService.getVotes())
 
-    this._handleVotes(votes)
+    this._handleVotes(votes, 'marinade')
   }
-  private async _handleVotes(votes: Votes){
+  private async _handleVotes(votes: Votes, poolName: string){
     // const votes: Votes = await firstValueFrom(this._marinadeService.getVotes())
     const totalPoolSize = await firstValueFrom(this._marinadeService.getPoolSize());
     this.snapshotCreatedAt = votes.voteRecordsCreatedAt
@@ -54,13 +59,22 @@ export class VotesTableComponent implements AfterViewInit {
     );
     this.totalDirectStake = totalDirectStake;
     const extnedRecords: Record[] = votes.records.filter(record => record.amount).map(record => {
-      return { ...record, amount: Number(record.amount),validatorName:record.validatorName, directStake: this.calcVotePower(totalDirectStake, record.amount, totalPoolSize) }
+      let directStake;
+      if(poolName === 'marinade'){
+        directStake= this.calcMSOLVotePower(totalDirectStake, record.amount, totalPoolSize)
+      }
+      if(poolName === 'solblaze'){
+        this.stakeRatio = votes.conversionRate
+        directStake = record.amount * votes.conversionRate
+      }
+      return { ...record, amount: Number(record.amount),validatorName:record.validatorName, directStake }
     })
      
     const mergeAndEvaluate = this.mergeDuplicateVoteAccount(extnedRecords) .sort((a, b) => b['Stake Amount'] - a['Stake Amount'])
     this.dataSource = new MatTableDataSource(mergeAndEvaluate)
     this.dataSource.paginator = this.paginator;
     this.dataSource.sort = this.sort;
+    this.loader = false
   }
   private mergeDuplicateVoteAccount(records: Record[]) {
     const mergeDuplications = Array.from(new Set(records.map(s => s.validatorVoteAccount)))
@@ -99,7 +113,7 @@ export class VotesTableComponent implements AfterViewInit {
     this.dataSource.filter = filterValue.trim().toLowerCase();
 
   }
-  public calcVotePower(totalDirectStake: number, directStake: number, poolSize: number): number {
+  public calcMSOLVotePower(totalDirectStake: number, directStake: number, poolSize: number): number {
     // how much % the DS control
     const voteControlPoolSize = 0.2;
     // how much SOL the votes control
@@ -112,11 +126,27 @@ export class VotesTableComponent implements AfterViewInit {
     return totalSOLForTheValidator
   }
 
+
   async searchByDate(ev:any){
     this.stakeRatio = "";
     const date = ev.value
     const votes: Votes = await firstValueFrom(this._marinadeService.getVotes(date))
 
-    this._handleVotes(votes)
+    this._handleVotes(votes,'marinade')
+  }
+  public currentPoolName = 'marinade'
+  public async renderPoolData(poolName: string){
+    this.loader = true
+    this.dataSource = []
+    this.currentPoolName = poolName
+    if(poolName === 'marinade'){
+      const votes: Votes = await firstValueFrom(this._marinadeService.getVotes())
+      this._handleVotes(votes, 'marinade')
+    }
+
+    if(poolName === 'solblaze'){
+      const votes: Votes = await firstValueFrom(this._solblazeService.getVotes())
+      this._handleVotes(votes,'solblaze')
+    }
   }
 }

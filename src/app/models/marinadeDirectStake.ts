@@ -1,15 +1,12 @@
-export interface Votes {
+export interface MarinadeDS {
     mSolSnapshotCreatedAt: string | null;
     records: Record[];
     voteRecordsCreatedAt: string;
-    snapshots: Votes[]
+    snapshots: MarinadeDS[] // only on ranges query
   }
   export interface Record {
     amount: number;
     tokenOwner: string;
-    validatorName?:string;
     validatorVoteAccount: string;
-    directStake: any;
-    breakDown:any[]
   }
   

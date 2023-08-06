@@ -1,0 +1,21 @@
+<div class="row">
+    <button id="marinade-button" class="pool-btn" (click)="selectPool('marinade')" [class.selected]="selectedPool === 'marinade'" mat-fab extended>
+        <div>
+
+            <img src="/assets/marinade-logo.png"/>
+            <span>
+                Marinade
+            </span>
+        </div>
+    </button>
+
+    <button id="solblaze-button" class="pool-btn" (click)="selectPool('solblaze')" [class.selected]="selectedPool === 'solblaze'" mat-fab extended>
+        <div>
+
+            <img src="/assets/solblaze-logo.png"/>
+            <span>
+                Solblaze
+            </span>
+        </div>
+      </button>
+  </div>

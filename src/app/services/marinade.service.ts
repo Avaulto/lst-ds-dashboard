@@ -1,11 +1,11 @@
 import { Injectable } from '@angular/core';
-import { HttpHeaders, HttpClient, HttpParams } from '@angular/common/http';
 import { firstValueFrom, map, Observable, throwError } from 'rxjs';
 
 import { catchError, switchMap } from 'rxjs/operators';
 import { ApiService } from './api.service';
-import { Votes } from '../models/votes.model';
-import { MarinadeTVL } from '../models/marinadeTVL.interface';
+import { MarinadeTVL } from '../models/marinadeTVL';
+import { MarinadeDS } from '../models/marinadeDirectStake';
+import { Votes } from '../models/votes';
 
 @Injectable({
   providedIn: 'root',
@@ -13,8 +13,8 @@ import { MarinadeTVL } from '../models/marinadeTVL.interface';
 export class MarinadeService {
   protected marinadeSnapshotAPI: string =
     'https://snapshots-api.marinade.finance/v1';
-    protected stakeWizApi: string = 'https://api.stakewiz.com/validators';
-  constructor(private apiService: ApiService) {}
+  protected stakeWizApi: string = 'https://api.stakewiz.com/validators';
+  constructor(private apiService: ApiService) { }
   protected marinadeAPI: string = 'https://api.marinade.finance';
 
   private _formatErrors(error: any) {
@@ -24,28 +24,37 @@ export class MarinadeService {
 
   public getVotes(date?: string): Observable<Votes> {
     let searchBy = ''
-    if(date){
-      const selectedDate = new Date(new Date().setDate(new Date(date).getDate() )).toISOString().split("T")[0]
-      const oneDayAgo = new Date(new Date().setDate(new Date(date).getDate() -1 )).toISOString().split("T")[0];
+    if (date) {
+      const selectedDate = new Date(new Date().setDate(new Date(date).getDate())).toISOString().split("T")[0]
+      const oneDayAgo = new Date(new Date().setDate(new Date(date).getDate() - 1)).toISOString().split("T")[0];
       searchBy = `all?startDate=${oneDayAgo}&endDate=${selectedDate}`
-    }else{
+    } else {
       searchBy = 'latest'
     }
     return this.apiService.get(`${this.marinadeSnapshotAPI}/votes/msol/${searchBy}`).pipe(
-      switchMap(async (snapshot:Votes) =>{
+      switchMap(async (snapshot: MarinadeDS) => {
         const validators = await firstValueFrom(this.apiService.get(this.stakeWizApi))
         // console.log(validators)
         let pointer;
-        if(date){
-          pointer = snapshot.snapshots[0] as Votes
-        }else{
+
+
+        if (date) {
+          pointer = snapshot.snapshots[0] as MarinadeDS
+        } else {
           pointer = snapshot
         }
         let updateSnapshot = pointer.records.map(record => {
-          const findValidatorName = validators.find((v:any) => v.vote_identity == record.validatorVoteAccount).name 
-          return {...record, validatorName:findValidatorName}
+          const findValidatorName = validators.find((v: any) => v.vote_identity == record.validatorVoteAccount).name
+          return { ...record, validatorName: findValidatorName }
         })
-        return {...pointer,records:updateSnapshot}
+        let votes: Votes = {
+          snapshotCreatedAt: null,
+          records: updateSnapshot,
+          voteRecordsCreatedAt:pointer.voteRecordsCreatedAt,
+          // snapshots: null // only on ranges query
+        }
+        console.log(votes)
+        return votes
       }),
       map((data) => {
         return data;
@@ -54,7 +63,7 @@ export class MarinadeService {
     );
   }
 
-  public getPoolSize(): Observable<number>{
+  public getPoolSize(): Observable<number> {
     return this.apiService
       .get(`${this.marinadeAPI}/tlv`)
       .pipe(
