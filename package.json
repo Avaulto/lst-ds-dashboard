@@ -1,5 +1,5 @@
 {
-  "name": "msol-ds-dashboard",
+  "name": "lts-ds-dashboard",
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
