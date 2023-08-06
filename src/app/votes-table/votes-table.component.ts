@@ -148,12 +148,12 @@ export class VotesTableComponent implements AfterViewInit {
     this.loader = true
     this.dataSource = []
     this.defaultPoolName = poolName
-    if(poolName === 'marinade'){
+    if(poolName.toLowerCase() === 'marinade'){
       const votes: Votes = await firstValueFrom(this._marinadeService.getVotes())
       this._handleVotes(votes, 'marinade')
     }
 
-    if(poolName === 'solblaze'){
+    if(poolName.toLowerCase() === 'solblaze'){
       const votes: Votes = await firstValueFrom(this._solblazeService.getVotes())
       this._handleVotes(votes,'solblaze')
     }
