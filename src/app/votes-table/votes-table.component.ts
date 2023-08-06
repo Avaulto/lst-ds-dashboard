@@ -153,7 +153,7 @@ export class VotesTableComponent implements AfterViewInit {
       this._handleVotes(votes, 'marinade')
     }
 
-    if(poolName === 'solBlaze'){
+    if(poolName === 'solblaze'){
       const votes: Votes = await firstValueFrom(this._solblazeService.getVotes())
       this._handleVotes(votes,'solblaze')
     }
