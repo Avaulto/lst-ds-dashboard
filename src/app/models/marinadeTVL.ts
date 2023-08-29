@@ -13,4 +13,6 @@ export interface MarinadeTVL {
     standard_staked_usd: number
     total_virtual_staked_sol: number
     total_virtual_staked_usd: number
+    marinade_native_stake_sol:number
+    marinade_native_stake_usd: number
 }

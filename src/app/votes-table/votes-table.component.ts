@@ -66,6 +66,7 @@ export class VotesTableComponent implements AfterViewInit {
       (accumulator, currentValue) => accumulator + Number(currentValue.amount),
       0
     );
+
     this.totalDirectStake = totalDirectStake;
     const extnedRecords: Record[] = votes.records.filter(record => record.amount).map(record => {
       let directStake;
@@ -123,6 +124,7 @@ export class VotesTableComponent implements AfterViewInit {
 
   }
   public calcMSOLVotePower(totalDirectStake: number, directStake: number, poolSize: number): number {
+    console.log(totalDirectStake,directStake, poolSize)
     // how much % the DS control
     const voteControlPoolSize = 0.2;
     // how much SOL the votes control
@@ -132,6 +134,7 @@ export class VotesTableComponent implements AfterViewInit {
     // how much total SOL the validator will recive 
     const totalSOLForTheValidator = singleStakeControlInPercentage * totalControl;
     this.stakeRatio = (totalSOLForTheValidator / directStake)
+    // console.log(this.stakeRatio)
     return totalSOLForTheValidator
   }
 

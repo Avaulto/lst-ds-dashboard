@@ -67,7 +67,7 @@ export class MarinadeService {
       .get(`${this.marinadeAPI}/tlv`)
       .pipe(
         map((data: MarinadeTVL) => {
-          return data.total_sol;
+          return data.staked_sol +data.marinade_native_stake_sol;
         }),
         catchError((error) => this._formatErrors(error))
       );
