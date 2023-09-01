@@ -4,6 +4,7 @@ export interface Votes {
     voteRecordsCreatedAt: string;
     conversionRate?: any;
     snapshots?: Votes[] // only on ranges query
+    
   }
   export interface Record {
     amount: any;
@@ -12,5 +13,6 @@ export interface Votes {
     validatorVoteAccount: string;
     directStake?: any;
     breakDown?:any[]
+    source?: string
   }
   

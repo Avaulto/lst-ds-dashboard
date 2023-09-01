@@ -1,38 +1,64 @@
-<h1>
-  {{defaultPoolName}} - direct stake dashboard
-  </h1>
-<app-pools-menu *ngIf="!this.queryURL" (onSelectPool)="renderPoolData($event)"></app-pools-menu>
-<div id="header">
+<div id="header" class="row">
+  <h1>
+    <img id='pool-logo' [src]="poolIcon" alt="pool logo">
+    {{defaultPoolName}} - direct stake dashboard
+    </h1>
+  <div id="meta-data">
+
+    <div class="p-color" *ngIf="defaultPoolName === 'marinade'">
+      <span>snapshot date </span>
+      <div>
+        <div>
+          {{snapshotCreatedAt | date}}
+        </div>
+        <input matInput hidden (dateChange)="searchByDate($event)" [matDatepicker]="picker" [max]="today">
+        <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+        <mat-datepicker #picker (yearSelected)="searchByDate($event)"></mat-datepicker>
+      </div>
+    </div>
+    <div class="p-color">
+      <div>
+        <span>MNDE vote ratio</span>
+        <div>1/{{voteRatio | number: '1.1'}} </div>
+      </div>
+      <div>
+
+        <span>direct stake ratio</span>
+        <div class="bold-color">1/{{stakeRatio | number: '1.1'}} </div>
+      </div>
+    </div>
+
+    <div class="p-color">
+      <span>total controlled stake</span>
+      <div id="total-control-stake"> {{totalDirectStake | number: '1.1'}} </div>
+    </div>
+  </div>
+</div>
+
+<!-- <app-pools-menu *ngIf="!this.queryURL" (onSelectPool)="renderPoolData($event)"></app-pools-menu> -->
+
+
+
+<div id="menu">
   <div id="filters">
 
     <mat-form-field>
       <mat-label>Filter</mat-label>
       <input matInput (keyup)="applyFilter($event)" placeholder="search by any term" #input>
     </mat-form-field>
-
-    <mat-form-field appearance="fill" *ngIf="defaultPoolName === 'marinade'">
+    <section class="example-section" *ngIf="defaultPoolName === 'marinade'">
+      <mat-checkbox (change)="reOrder('direct-stake',$event)" [checked]="viewDirectStake" class="bold-color">SOL direct stake</mat-checkbox>
+      <mat-checkbox (change)="reOrder('votes', $event)" [checked]="viewVoteStake" >veMNDE votes</mat-checkbox>
+    </section>
+    
+    <!-- <mat-form-field appearance="fill" *ngIf="defaultPoolName === 'marinade'">
       <mat-label>Find snapshot</mat-label>
       <input matInput (dateChange)="searchByDate($event)" [matDatepicker]="picker" [max]="today">
       <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
       <mat-datepicker #picker (yearSelected)="searchByDate($event)"></mat-datepicker>
-    </mat-form-field>
+    </mat-form-field> -->
   </div>
-  <div id="meta-data">
 
-    <div class="p-color" *ngIf="defaultPoolName === 'marinade'">
-      <span>Vote Records Created At: </span>
-      {{snapshotCreatedAt | date}}
-    </div>
-    <div class="p-color">
-      <span> stake ratio:</span>
-      1/{{stakeRatio | number: '1.1'}}
-    </div>
-
-    <div class="p-color">
-      <span>total direct stake:</span>
-      {{totalDirectStake | number: '1.1'}}
-    </div>
-  </div>
 </div>
 <mat-progress-bar *ngIf="loader" mode="query"></mat-progress-bar>
 <table mat-table multiTemplateDataRows [dataSource]="dataSource" matSort (matSortChange)="announceSortChange($event)"
@@ -40,10 +66,24 @@
 
 
   <ng-container matColumnDef="{{column}}" *ngFor="let column of columnsToDisplay">
-    <th mat-sort-header sortActionDescription="Sort by" mat-header-cell *matHeaderCellDef> {{column}} </th>
+    <th mat-sort-header sortActionDescription="Sort by" mat-header-cell *matHeaderCellDef> 
+
+      <ng-container *ngIf="column === 'Stake Amount' ; else elseTemplate">
+        {{column}}
+        <mat-icon aria-hidden="false"  matTooltip="Sum of direct stake and votes" fontIcon="info"></mat-icon>
+        
+      </ng-container>
+      <ng-template #elseTemplate>
+        {{column}}
+      </ng-template>
+
+    </th>
     <td mat-cell *matCellDef="let element">
-      <ng-container *ngIf="column === 'Stake Amount' || column === 'Direct Stake'; else elseTemplate">
+      <ng-container  *ngIf="column === 'Stake Amount' || column === 'Total Stake'; else elseTemplate">
+        
         {{element[column] | number}}
+        <mat-icon *ngIf="element.source ==  'MNDE' && element[column].amount > stakeInfo.poolSize * 0.02" aria-hidden="false"  matTooltip="Stake size is bigger then delegation strategy is allowing, consider vote to another validator" fontIcon="warning"></mat-icon>
+
       </ng-container>
       <ng-template #elseTemplate>
         {{element[column] }}
@@ -64,13 +104,21 @@
   <ng-container matColumnDef="expandedDetail">
     <td mat-cell *matCellDef="let element" [attr.colspan]="columnsToDisplayWithExpand.length">
       <div class="example-element-detail" [@detailExpand]="element == expandedElement ? 'expanded' : 'collapsed'">
-
-        <div class="stake-break-down" *ngFor="let voter of element.breakDown">
-          <span> wallet owner: {{voter.tokenOwner}}</span>
-          <span> amount stake {{voter.amount | number: '1.2'}} </span>
+        <div id="custom-stake-table">
+          <span>
+            wallet owner:
+          </span>
+          <span>
+            amount:
+          </span>
+          <span>
+            source:
+          </span>
+          <span>
+            stake:
+          </span>
         </div>
-
-
+        <app-vote-item *ngFor="let voter of element.breakDown" [poolSize]="stakeInfo.totalPoolSize" [voter]="voter"></app-vote-item>
       </div>
     </td>
   </ng-container>

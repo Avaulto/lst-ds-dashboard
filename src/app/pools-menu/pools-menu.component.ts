@@ -12,5 +12,6 @@ export class PoolsMenuComponent {
   public selectPool(poolName: string): void{
     this.selectedPool = poolName
     this.onSelectPool.emit(poolName)
+    document.documentElement.setAttribute('data-theme', poolName)
   }
 }

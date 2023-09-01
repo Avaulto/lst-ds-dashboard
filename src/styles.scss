@@ -2,8 +2,20 @@
 
 html, body { height: 100%; }
 body { 
-    background-image: url(/assets/support-network-bg.png);
-    background-repeat: no-repeat;
-    background-size: cover;
-    
-    margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+    margin: 0; 
+    font-family: Roboto, "Helvetica Neue", sans-serif;
+    background-color: var(--main-color)
+ }
+
+ :root, html[data-theme="marinade"] {
+    --main-color: rgb(200, 236, 225);
+    --bold-color: rgb(48 141 138);
+    --text-color: rgb(235, 131, 2);
+  }
+
+
+ html[data-theme="solblaze"] {
+    --main-color: #1a202c;
+    --bold-color: #70eeff;
+    --text-color: #70eeff;
+  }

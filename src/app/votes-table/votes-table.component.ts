@@ -2,9 +2,9 @@ import { LiveAnnouncer } from '@angular/cdk/a11y';
 import { AfterViewInit, Component, ViewChild } from '@angular/core';
 import { MatSort, Sort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
-import { MarinadeService } from '../services/marinade.service';
+import { DirectStakeService } from '../services/direct-stake.service';
 import { Record, Votes } from '../models/votes';
-import { firstValueFrom, lastValueFrom } from 'rxjs';
+import { concat, firstValueFrom, lastValueFrom } from 'rxjs';
 import { MatPaginator } from '@angular/material/paginator';
 import { animate, state, style, transition, trigger } from '@angular/animations';
 import { SolblazeService } from '../services/solblaze.service';
@@ -25,86 +25,95 @@ import { ActivatedRoute } from '@angular/router';
 })
 
 export class VotesTableComponent implements AfterViewInit {
-  public today = new Date(); 
-  columnsToDisplay: string[] = ['Stake Amount', 'Validator', 'Direct Stake'];
+
+
+  public today = new Date();
+  columnsToDisplay: string[] = ['Stake Amount', 'Validator', 'Total Stake'];
   columnsToDisplayWithExpand = [...this.columnsToDisplay, 'expand'];
   expandedElement: any;
   loader: boolean = true;
   dataSource: any //= new MatTableDataSource(ELEMENT_DATA);
   snapshotCreatedAt: Date | any = null
-  public stakeRatio: any = "";
+  public stakeRatio: number = 0
+  public voteRatio: number = 0
   public totalDirectStake: number = 0
+  public viewDirectStake: boolean = true
+  public viewVoteStake: boolean = true
   constructor(
     private _liveAnnouncer: LiveAnnouncer,
-     private _marinadeService: MarinadeService,
-     private _solblazeService:SolblazeService,
+    private _directStakeService: DirectStakeService,
+    private _solblazeService: SolblazeService,
 
-     ) { }
+  ) { }
   @ViewChild(MatPaginator) paginator: MatPaginator | any;
   @ViewChild(MatSort) sort: MatSort | any;
 
   public defaultPoolName = '';
+  public poolIcon = ''
   public queryURL: boolean = false;
+
+
+  public dataToInclude() {
+
+  }
   async ngAfterViewInit() {
     const queryString = window.location.search;
     const urlParams = new URLSearchParams(queryString);
     const pool = urlParams.get('pool')
-    if(pool){
+    if (pool) {
       this.defaultPoolName = pool
       this.queryURL = true;
-    }else{
+    } else {
       this.defaultPoolName = 'marinade'
     }
-   this.renderPoolData(this.defaultPoolName)
+    this.renderPoolData(this.defaultPoolName)
+    document.documentElement.setAttribute('data-theme', this.defaultPoolName)
   }
-  private async _handleVotes(votes: Votes, poolName: string){
-    // const votes: Votes = await firstValueFrom(this._marinadeService.getVotes())
-    const totalPoolSize = await firstValueFrom(this._marinadeService.getPoolSize());
+
+  private _handleVotes(votes: Votes) {
+    this.loader = true
+    // const votes: Votes = await firstValueFrom(this._directStakeService.getVotes())
+    // const totalPoolSize = await firstValueFrom(this._directStakeService.getPoolSize());
     this.snapshotCreatedAt = votes.voteRecordsCreatedAt
 
-    const totalDirectStake = votes.records.filter(record => record.amount).reduce(
-      (accumulator, currentValue) => accumulator + Number(currentValue.amount),
+    const totalDirectStake = votes.records.reduce(
+      (accumulator, currentValue) => accumulator + Number(currentValue.directStake),
       0
     );
+    this.totalDirectStake = totalDirectStake
 
-    this.totalDirectStake = totalDirectStake;
-    const extnedRecords: Record[] = votes.records.filter(record => record.amount).map(record => {
-      let directStake;
-      if(poolName === 'marinade'){
-        directStake= this.calcMSOLVotePower(totalDirectStake, record.amount, totalPoolSize)
-      }
-      if(poolName === 'solblaze'){
-        this.stakeRatio = votes.conversionRate
-        directStake = record.amount * votes.conversionRate
-      }
-      return { ...record, amount: Number(record.amount),validatorName:record.validatorName, directStake }
-    })
-     
-    const mergeAndEvaluate = this.mergeDuplicateVoteAccount(extnedRecords) .sort((a, b) => b['Stake Amount'] - a['Stake Amount'])
+    const mergeAndEvaluate = this.mergeDuplicateVoteAccount(votes.records).sort((a, b) => b['Total Stake'] - a['Total Stake'])
     this.dataSource = new MatTableDataSource(mergeAndEvaluate)
     this.dataSource.paginator = this.paginator;
     this.dataSource.sort = this.sort;
     this.loader = false
   }
+
   private mergeDuplicateVoteAccount(records: Record[]) {
     const mergeDuplications = Array.from(new Set(records.map(s => s.validatorVoteAccount)))
       .map((validatorVoteAccount, i) => {
         return {
           validatorVoteAccount,
-          // name: mergeDuplications[i].name,
           data: records.filter(s => s.validatorVoteAccount === validatorVoteAccount)
         }
       })
     const evaluteTotals = mergeDuplications.map(item => {
-      const amount = item.data.reduce(
+
+      const totalDsAmount = item.data.filter(r => r.source === 'SOL').reduce(
         (accumulator, currentValue) => accumulator + Number(currentValue.amount),
         0
       );
+      const totalVoteAmount = item.data.filter(r => r.source === 'MNDE').reduce(
+        (accumulator, currentValue) => accumulator + Number(currentValue.amount),
+        0
+      );
+      const voteAndStake = totalDsAmount + (totalVoteAmount * this.voteRatio)
       const directStake = item.data.reduce(
         (accumulator, currentValue) => accumulator + Number(currentValue.directStake),
         0
       );
-      return { 'Stake Amount': amount, 'Direct Stake': directStake, 'Validator': item.data[0].validatorName || item.data[0].validatorVoteAccount, breakDown: item.data }
+
+      return { 'Stake Amount': voteAndStake, 'Total Stake': directStake, 'Validator': item.data[0].validatorName || item.data[0].validatorVoteAccount, breakDown: item.data }
     })
     return evaluteTotals
 
@@ -123,42 +132,50 @@ export class VotesTableComponent implements AfterViewInit {
     this.dataSource.filter = filterValue.trim().toLowerCase();
 
   }
-  public calcMSOLVotePower(totalDirectStake: number, directStake: number, poolSize: number): number {
-    console.log(totalDirectStake,directStake, poolSize)
-    // how much % the DS control
-    const voteControlPoolSize = 0.2;
-    // how much SOL the votes control
-    const totalControl = poolSize * voteControlPoolSize;
-    // how much % each stake control out of the total ds
-    const singleStakeControlInPercentage = directStake / totalDirectStake
-    // how much total SOL the validator will recive 
-    const totalSOLForTheValidator = singleStakeControlInPercentage * totalControl;
-    this.stakeRatio = (totalSOLForTheValidator / directStake)
-    // console.log(this.stakeRatio)
-    return totalSOLForTheValidator
-  }
 
 
-  async searchByDate(ev:any){
-    this.stakeRatio = "";
-    const date = ev.value
-    const votes: Votes = await firstValueFrom(this._marinadeService.getVotes(date))
-
-    this._handleVotes(votes,'marinade')
-  }
-
-  public async renderPoolData(poolName: string){
+  async searchByDate(ev: any) {
+    this.stakeRatio = 0;
     this.loader = true
+    const date = ev.value
+    console.log(date)
+    const votes: Votes = await (await firstValueFrom(this._directStakeService.getVotes(this.defaultPoolName, date))).directStake
+    this._handleVotes(votes)
+  }
+
+
+  public stakeInfo:any = null
+  public async renderPoolData(poolName: string) {
+    this.stakeInfo = null
     this.dataSource = []
-    this.defaultPoolName = poolName
-    if(poolName.toLowerCase() === 'marinade'){
-      const votes: Votes = await firstValueFrom(this._marinadeService.getVotes())
-      this._handleVotes(votes, 'marinade')
+    this.defaultPoolName = poolName.toLowerCase()
+
+    this.poolIcon = `assets/${this.defaultPoolName}-logo.png`
+    this.stakeInfo = await firstValueFrom(this._directStakeService.getVotes(this.defaultPoolName))
+    this.voteRatio = this.stakeInfo.voteStakeRatio
+    this.stakeRatio = this.stakeInfo.directStakeRatio
+
+    const allStake = [...this.stakeInfo.voteStake.records, ...this.stakeInfo.directStake.records];
+    
+    const votes = {...this.stakeInfo.directStake}
+    votes.records = allStake
+    console.log(votes)
+    this._handleVotes(votes)
+  }
+  public reOrder(type: 'direct-stake' | 'votes', ev: any){
+    if(type === 'direct-stake'){
+      this.viewDirectStake = ev.checked
+    }
+    if(type === 'votes'){
+      this.viewVoteStake = ev.checked
     }
 
-    if(poolName.toLowerCase() === 'solblaze'){
-      const votes: Votes = await firstValueFrom(this._solblazeService.getVotes())
-      this._handleVotes(votes,'solblaze')
-    }
+    const allStake = [];
+    this.viewDirectStake ? allStake.push( ...this.stakeInfo.directStake.records) : ''
+    this.viewVoteStake ? allStake.push( ...this.stakeInfo.voteStake.records) : ''
+    const votes = {...this.stakeInfo.directStake}
+    votes.records = allStake
+
+    this._handleVotes(votes)
   }
 }

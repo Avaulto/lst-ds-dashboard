@@ -10,6 +10,7 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { MaterialExampleModule } from './material.module';
 import { inject } from '@vercel/analytics';
 import { PoolsMenuComponent } from './pools-menu/pools-menu.component';
+import { VoteItemComponent } from './votes-table/vote-item/vote-item.component';
  
 inject();
 @NgModule({
@@ -17,6 +18,7 @@ inject();
     AppComponent,
     PoolsMenuComponent,
     VotesTableComponent,
+    VoteItemComponent
   ],
   imports: [
     BrowserModule,

@@ -97,6 +97,8 @@ import {DialogModule} from '@angular/cdk/dialog';
     PortalModule,
     ScrollingModule,
     DialogModule,
+    MatCheckboxModule,
+    MatTooltipModule
   ]
 })
 export class MaterialExampleModule {}

@@ -1,0 +1,13 @@
+
+<div class="stake-break-down" >
+    <span> {{addrUtil(voter.tokenOwner).addrShort}}</span>
+    <span>
+      {{voter.amount | number: '1.2'}} 
+    </span>
+    <span id="stake-source" [class.voteSource]="voter.source ==  'MNDE'">{{voter.source}} </span>
+    <span>{{voter.directStake | number: '1.2'}}
+
+      <mat-icon *ngIf="voter.source ==  'MNDE' && voter.amount > poolSize * 0.02" aria-hidden="false"  matTooltip="Stake size is bigger than delegation strategy is allowing, consider vote to another validator" fontIcon="warning"></mat-icon>
+
+    </span>
+  </div>
