@@ -148,12 +148,16 @@ mat-form-field {
   .bold-color.mat-mdc-checkbox label{
     color: var(--bold-color);
   }
-
-  .mat-mdc-checkbox {}
 }
 
+#learn-more{
+  display: flex;
+    align-items: center;
+    color: var(--text-color);
+}
 @media only screen and (max-width: 600px) {
   #header {
     display: block;
   }
 }
+
