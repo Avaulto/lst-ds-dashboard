@@ -5,7 +5,8 @@ import { catchError, switchMap } from 'rxjs/operators';
 import { ApiService } from './api.service';
 import { MarinadeTVL } from '../models/marinadeTVL';
 import { MarinadeDS } from '../models/marinadeDirectStake';
-import { Votes } from '../models/votes';
+import { Votes, Record } from '../models/votes';
+import { SolblazeDS } from '../models/solblazeDirectStake';
 
 @Injectable({
   providedIn: 'root',
@@ -45,74 +46,126 @@ export class DirectStakeService {
     }
     return formatDate(date)
   }
-  public getVotes(pool: string,date?: string):Observable<{ directStake:Votes,voteStake:Votes,  directStakeRatio:number, voteStakeRatio:number,totalPoolSize: number}>{
-    let searchBy = ''
-    if (date) {
-      const selectedDate = this.formatDate(new Date(date))// .toISOString().split("T")[0]
-      const oneDayAgo = this.getPreviousDay(new Date(date))
-      console.log(date,  selectedDate, oneDayAgo)
-      searchBy = `all?startDate=${oneDayAgo}&endDate=${selectedDate}`
-    } else {
-      searchBy = 'latest'
-    }
+  public getVotes(pool: string,date: string = ''):Observable<{ directStake:Votes,voteStake:Votes,  directStakeRatio:number, voteStakeRatio:number, totalPoolSize: number}>{
+   let dataSet: any;
+   console.log(pool)
+    if(pool === 'marinade'){
+      dataSet = this.marinadeDS(date)
+   }
+   if(pool === 'solblaze'){
+    dataSet =  this.solblazeDS()
+   }
+   return dataSet
+  }
+  private createVotesArr(snapshot: MarinadeDS, validators: any, ratio: number, source: 'SOL' | 'MNDE' | 'BLZE', convertRatio?: number): Votes {
 
-    const createVotesArr = (snapshot: MarinadeDS, validators: any, ratio: number, source: 'SOL' | 'MNDE', msolPrice?: number): Votes => {
-      let pointer;
 
-      if (date) {
-        pointer = snapshot.snapshots[0] as MarinadeDS
-      } else {
-        pointer = snapshot
-      }
-      let updateSnapshot = pointer.records.filter(r =>r.amount).map(record => {
+    let records = snapshot.records.filter(r =>r.amount).map(record => {
+        
         const findValidatorName = validators.find((v: any) => v.vote_identity == record.validatorVoteAccount).name;
-       
-        const amount = msolPrice ? Number(record.amount) * msolPrice : record.amount
+        
+        const amount = convertRatio ? Number(record.amount) * convertRatio : record.amount
         const directStake = amount * ratio
         // console.log(record.tokenOwner, amount, amount * ratio)
         return { ...record, validatorName: findValidatorName, amount, directStake, source }
       })
+    let votes: Votes = {
+      snapshotCreatedAt: null,
+      records,
+      voteRecordsCreatedAt: snapshot.voteRecordsCreatedAt,
+      // snapshots: null // only on ranges query
+    }
+    return votes
+  }
+  private marinadeDS(date: string){
+    let searchBy = ''
+    if (date) {
+      const selectedDate = this.formatDate(new Date(date))// .toISOString().split("T")[0]
+      const oneDayAgo = this.getPreviousDay(new Date(date))
+      searchBy = `all?startDate=${oneDayAgo}&endDate=${selectedDate}`
+    } else {
+      searchBy = 'latest'
+    }
+  
+
+
+  return forkJoin({
+    directStakeSnapshot: this.apiService.get(`${this.marinadeSnapshotAPI}/votes/msol/${searchBy}`),
+    voteStakeSnapshot: this.apiService.get(`${this.marinadeSnapshotAPI}/votes/vemnde/${searchBy}`)
+  }).pipe(
+    switchMap(async (snapshot: { directStakeSnapshot: MarinadeDS, voteStakeSnapshot: MarinadeDS }) => {
+
+      let snapshotPointer;
+
+      if (date) {
+        snapshotPointer = snapshot.directStakeSnapshot.snapshots[0] as MarinadeDS
+      } else {
+        snapshotPointer = snapshot.directStakeSnapshot
+      }
+
+      const totalPoolSize = await firstValueFrom(this.getPoolSize());
+      const validators = await firstValueFrom(this.apiService.get(this.stakeWizApi))
+      const msolPrice = await firstValueFrom(this.apiService.get(`${this.marinadeAPI}/msol/price_sol`))
+      const voteStakeRatio = await this.calcRatio(totalPoolSize * 0.2, snapshot.voteStakeSnapshot)
+      const directStakeRatio = await this.calcRatio(totalPoolSize * 0.2, snapshot.directStakeSnapshot, msolPrice);
+      const voteStake = this.createVotesArr(snapshot.voteStakeSnapshot, validators, voteStakeRatio, 'MNDE')
+      const directStake = this.createVotesArr(snapshotPointer, validators, directStakeRatio, 'SOL', msolPrice)
+      // console.log(directStake, voteStake, directStakeRatio, voteStakeRatio, totalPoolSize)
+      return {directStake, voteStake, directStakeRatio, voteStakeRatio , totalPoolSize};
+    }),
+    catchError((error) => this._formatErrors(error))
+  );
+}
+
+solblazeDS():Observable<{ directStake:Votes,voteStake:Votes,  directStakeRatio:number, voteStakeRatio:number,totalPoolSize: number}> {
+  return this.apiService.get(`${this.solblazeSnapshotAPI}`).pipe(
+    switchMap(async (snapshot: SolblazeDS) => {
+      const validators = await firstValueFrom(this.apiService.get(this.stakeWizApi))
+      let records: Record[] = []
+      Object.keys(snapshot.applied_stakes).map((r, i) => {
+       let re = Object.keys(snapshot.applied_stakes[r]).map((v,i) =>{
+
+          const validatorVoteAccount = r  as any; // Object.keys(snapshot.applied_stakes) as any;
+          const tokenOwner =  Object.keys(snapshot.applied_stakes[r])[i] as any;
+          const amount: number = snapshot.applied_stakes[r][tokenOwner as any];
+          const validatorName = validators.find((v: any) => v.vote_identity == validatorVoteAccount)?.name || ''
+
+          const directStake = amount * snapshot.boost.conversion
+          let record: Record = {
+            amount,
+            tokenOwner,
+            validatorName,
+            validatorVoteAccount,
+            directStake,
+            source: 'SOL'
+          }
+          records.push(record)
+          return record;
+        })
+        // console.log(re)
+      })
+      // const aggigateVote = this.createVotesArr(records)
       let votes: Votes = {
         snapshotCreatedAt: null,
-        records: updateSnapshot,
-        voteRecordsCreatedAt: pointer.voteRecordsCreatedAt,
+        records,
+        voteRecordsCreatedAt: '0',
+        conversionRate: snapshot.boost.conversion,
         // snapshots: null // only on ranges query
       }
-      return votes
-    }
-    let dataSet: {} = {}
-    if(pool === 'marinade'){
-      dataSet = {
-        directStakeSnapshot: this.apiService.get(`${this.marinadeSnapshotAPI}/votes/msol/${searchBy}`),
-        voteStakeSnapshot: this.apiService.get(`${this.marinadeSnapshotAPI}/votes/vemnde/${searchBy}`)
-      }
-    }else{
-      dataSet = {
-        directStakeSnapshot: this.apiService.get(`${this.solblazeSnapshotAPI}`)
-      }
-    }
-    return forkJoin(dataSet).pipe(
-      switchMap(async (snapshot: { directStakeSnapshot: MarinadeDS, voteStakeSnapshot: MarinadeDS }) => {
-        const totalPoolSize = await firstValueFrom(this.getPoolSize());
-        const validators = await firstValueFrom(this.apiService.get(this.stakeWizApi))
-        const msolPrice = await firstValueFrom(this.apiService.get(`${this.marinadeAPI}/msol/price_sol`))
-        const voteStakeRatio = await this.calcRatio(totalPoolSize, snapshot.voteStakeSnapshot)
-        const directStakeRatio = await this.calcRatio(totalPoolSize, snapshot.directStakeSnapshot, msolPrice);
-        const voteStake = createVotesArr(snapshot.voteStakeSnapshot, validators, voteStakeRatio, 'MNDE')
-        const directStake = createVotesArr(snapshot.directStakeSnapshot, validators, directStakeRatio, 'SOL', msolPrice)
-        // console.log(directStake, voteStake, directStakeRatio, voteStakeRatio, totalPoolSize)
-        return {directStake, voteStake, directStakeRatio, voteStakeRatio , totalPoolSize};
-      }),
-      catchError((error) => this._formatErrors(error))
-    );
+      // return votes
+      return {directStake:votes, voteStake: {} as Votes, directStakeRatio: snapshot.boost.conversion, voteStakeRatio: 0 , totalPoolSize: snapshot.boost.pool};
+
+    }),
+    map((data) => {
+      return data;
+    }),
+    // catchError((error) => this._formatErrors(error))
+  );
   }
-
-
-  private async calcRatio(stakePool: number, dataset: MarinadeDS, convertRatio: number = 1): Promise<number> {
+  private async calcRatio(SOL_total_allocated_stake: number, dataset: MarinadeDS, convertRatio: number = 1): Promise<number> {
     let stakeRatio = 0
     try {
-      const mSOL_total_allocated_stake = stakePool * 0.2;
-      console.log(mSOL_total_allocated_stake)
+
       const recordNoEmpty = dataset.records.filter((record: any) => record.amount)
       const totalDirectStake = recordNoEmpty.reduce(
         (accumulator: any, currentValue: any) => accumulator + Number(currentValue.amount * convertRatio),
@@ -124,7 +177,7 @@ export class DirectStakeService {
       const singleVoteControlInPercentage = singleVote / totalDirectStake
       // how much total SOL the validator will recive 
 
-      const totalVotesForTheValidator = singleVoteControlInPercentage * mSOL_total_allocated_stake;
+      const totalVotesForTheValidator = singleVoteControlInPercentage * SOL_total_allocated_stake;
       stakeRatio = totalVotesForTheValidator / singleVote
     } catch (error) {
       console.error(error)

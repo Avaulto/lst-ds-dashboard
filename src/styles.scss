@@ -11,11 +11,13 @@ body {
     --main-color: rgb(200, 236, 225);
     --bold-color: rgb(48 141 138);
     --text-color: rgb(235, 131, 2);
+    --text2-color: black;
   }
 
 
  html[data-theme="solblaze"] {
     --main-color: #1a202c;
     --bold-color: #70eeff;
-    --text-color: #70eeff;
+    --text-color: #00ff9f;
+    --text2-color: white;
   }

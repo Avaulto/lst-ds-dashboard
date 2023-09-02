@@ -7,9 +7,7 @@ import { Record, Votes } from '../models/votes';
 import { concat, firstValueFrom, lastValueFrom } from 'rxjs';
 import { MatPaginator } from '@angular/material/paginator';
 import { animate, state, style, transition, trigger } from '@angular/animations';
-import { SolblazeService } from '../services/solblaze.service';
-import { ActivatedRoute } from '@angular/router';
-
+// @ts-nocheck
 
 @Component({
   selector: 'votes-table',
@@ -25,32 +23,36 @@ import { ActivatedRoute } from '@angular/router';
 })
 
 export class VotesTableComponent implements AfterViewInit {
-
-
   public today = new Date();
-  columnsToDisplay: string[] = ['Stake Amount', 'Validator', 'Total Stake'];
-  columnsToDisplayWithExpand = [...this.columnsToDisplay, 'expand'];
-  expandedElement: any;
-  loader: boolean = true;
-  dataSource: any //= new MatTableDataSource(ELEMENT_DATA);
-  snapshotCreatedAt: Date | any = null
+  public columnsToDisplay: string[] = ['Stake Amount', 'Validator', 'Total Stake'];
+  public columnsToDisplayWithExpand = [...this.columnsToDisplay, 'expand'];
+  public expandedElement: any;
+  public loader: boolean = true;
+  public dataSource: any //= new MatTableDataSource(ELEMENT_DATA);
+  public snapshotCreatedAt: Date | any = null
+  public dsGuideLink = {
+    marinadeDocs:'https://docs.marinade.finance/marinade-products/directed-stake',
+    marinadeCurrentStake:'https://solanabeach.io/address/4bZ6o3eUUNXhKuqjdCnCoPAoLgWiuLYixKaxoa8PpiKk/stakes',
+    solblazeDocs:'https://stake-docs.solblaze.org/features/custom-liquid-staking',
+    solblazeCurrentStake:'https://solanabeach.io/address/6WecYymEARvjG5ZyqkrVQ6YkhPfujNzWpSPwNKXHCbV2/stakes'
+}
   public stakeRatio: number = 0
   public voteRatio: number = 0
   public totalDirectStake: number = 0
   public viewDirectStake: boolean = true
   public viewVoteStake: boolean = true
+  public defaultPoolName = 'marinade';
+  public poolIcon = ''
+  public queryURL: boolean = false;
   constructor(
     private _liveAnnouncer: LiveAnnouncer,
     private _directStakeService: DirectStakeService,
-    private _solblazeService: SolblazeService,
+
 
   ) { }
   @ViewChild(MatPaginator) paginator: MatPaginator | any;
   @ViewChild(MatSort) sort: MatSort | any;
 
-  public defaultPoolName = '';
-  public poolIcon = ''
-  public queryURL: boolean = false;
 
 
   public dataToInclude() {
@@ -63,9 +65,7 @@ export class VotesTableComponent implements AfterViewInit {
     if (pool) {
       this.defaultPoolName = pool
       this.queryURL = true;
-    } else {
-      this.defaultPoolName = 'marinade'
-    }
+    } 
     this.renderPoolData(this.defaultPoolName)
     document.documentElement.setAttribute('data-theme', this.defaultPoolName)
   }
@@ -138,7 +138,6 @@ export class VotesTableComponent implements AfterViewInit {
     this.stakeRatio = 0;
     this.loader = true
     const date = ev.value
-    console.log(date)
     const votes: Votes = await (await firstValueFrom(this._directStakeService.getVotes(this.defaultPoolName, date))).directStake
     this._handleVotes(votes)
   }
@@ -155,11 +154,12 @@ export class VotesTableComponent implements AfterViewInit {
     this.voteRatio = this.stakeInfo.voteStakeRatio
     this.stakeRatio = this.stakeInfo.directStakeRatio
 
-    const allStake = [...this.stakeInfo.voteStake.records, ...this.stakeInfo.directStake.records];
-    
+    const allStake = [...this.stakeInfo.directStake.records];
+    if(this.defaultPoolName === 'marinade'){
+      allStake.push(...this.stakeInfo.voteStake.records)
+    }
     const votes = {...this.stakeInfo.directStake}
     votes.records = allStake
-    console.log(votes)
     this._handleVotes(votes)
   }
   public reOrder(type: 'direct-stake' | 'votes', ev: any){

@@ -3,6 +3,7 @@
   align-items: center;
   margin-bottom: 35px;
   h1 {
+    color: var(--text2-color);
     text-align: left;
     text-transform: capitalize;
     padding-top: 20px;
@@ -28,15 +29,21 @@ table {
 }
 #menu {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
+  margin-bottom: 10px;
 }
 
 #filters {
   flex: 1;
   display: flex;
-}
 
+}
+section{
+  display: flex;
+}
 #meta-data {
+  flex-wrap: wrap;
   display: flex;
   flex: 1;
   text-align: center;
@@ -77,7 +84,6 @@ tr.example-element-row:not(.example-expanded-row):active {
     display: flex;
     align-items: center;
     justify-content: center;
-    height: 50%;
     flex-wrap: wrap;
   }
 
@@ -136,6 +142,8 @@ mat-form-field {
     padding: 8px;
     padding-right: 18px;
     margin-inline-end: 8px;
+    height: 40px;
+    margin-bottom: 5px;
 }
   .mdc-linear-progress__bar-inner {
     border-color: var(--text-color) !important;
@@ -150,14 +158,21 @@ mat-form-field {
   }
 }
 
-#learn-more{
+.learn-more{
   display: flex;
+  text-transform: capitalize;
     align-items: center;
     color: var(--text-color);
 }
 @media only screen and (max-width: 600px) {
   #header {
     display: block;
+  }
+  .p-color{
+    width: 100%;
+  }
+  section{
+    flex-direction: column;
   }
 }
 

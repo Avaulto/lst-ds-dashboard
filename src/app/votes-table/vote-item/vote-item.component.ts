@@ -14,7 +14,6 @@ export class VoteItemComponent {
  }
 
  ngOnInit(): void {
-  console.log(this.poolSize)
   //Called after the constructor, initializing input properties, and the first call to ngOnChanges.
   //Add 'implements OnInit' to the class.
   // this.voter.walletOwner = this.addrUtil(this.voter.walletOwner).addrShort

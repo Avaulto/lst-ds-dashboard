@@ -17,7 +17,7 @@
       </div>
     </div>
     <div class="p-color">
-      <div>
+      <div *ngIf="defaultPoolName === 'marinade'">
         <span>MNDE vote ratio</span>
         <div>1/{{voteRatio | number: '1.1'}} </div>
       </div>
@@ -59,10 +59,7 @@
     </mat-form-field> -->
   </div>
   
-  <a id="learn-more"  *ngIf="defaultPoolName === 'marinade'" href="https://docs.marinade.finance/marinade-products/directed-stake" target="_blank">
-    How does Marinade Directed Stake work?
-    <mat-icon aria-hidden="false"  fontIcon="logout"></mat-icon>
-  </a>
+
 </div>
 <mat-progress-bar *ngIf="loader" mode="query"></mat-progress-bar>
 <table mat-table multiTemplateDataRows [dataSource]="dataSource" matSort (matSortChange)="announceSortChange($event)"
@@ -138,3 +135,16 @@
 
 <mat-paginator [pageSizeOptions]="[10, 15, 20]" showFirstLastButtons aria-label="Select page of periodic elements">
 </mat-paginator>
+
+<footer>
+
+  <a class="learn-more"  target="_blank" [href]="defaultPoolName === 'marinade' ?  dsGuideLink.marinadeDocs : dsGuideLink.solblazeDocs" target="_blank">
+    How does {{defaultPoolName}} Directed Stake work?
+    <mat-icon aria-hidden="false"  fontIcon="logout"></mat-icon>
+  </a>
+
+  <a class="learn-more" target="_blank" [href]="defaultPoolName === 'marinade' ?  dsGuideLink.marinadeCurrentStake : dsGuideLink.solblazeCurrentStake">
+    current delegation strategy stake
+    <mat-icon aria-hidden="false"  fontIcon="logout"></mat-icon>
+  </a>
+</footer>
