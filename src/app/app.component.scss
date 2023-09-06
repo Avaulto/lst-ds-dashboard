@@ -18,7 +18,11 @@
     font-size: 14px;
     text-transform: capitalize;
     filter: drop-shadow(2px 4px 6px black);
+    a{
+        text-decoration: none;
+    }
     span#logo {
+        display: block;
         background: linear-gradient(96.02deg, #0CDAC4 0.22%, #395DF0 31.45%, #FD49AD 71.02%, #FF845A 104.34%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
