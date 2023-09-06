@@ -12,12 +12,19 @@
     display: flex;
     text-transform: uppercase;
     align-items: center;
+    text-align: center;
     justify-content: center;
     flex-direction: column;
     font-size: 14px;
     text-transform: capitalize;
     filter: drop-shadow(2px 4px 6px black);
+    span#logo {
+        background: linear-gradient(96.02deg, #0CDAC4 0.22%, #395DF0 31.45%, #FD49AD 71.02%, #FF845A 104.34%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        --WebkitTextFillColor: transparent;
+    }
     img{
-        width: 60px;
+        width: 40px;
     }
 }
