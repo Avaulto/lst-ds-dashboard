@@ -95,21 +95,22 @@ export class DirectStakeService {
     }).pipe(
       switchMap(async (snapshot: { directStakeSnapshot: MarinadeDS, voteStakeSnapshot: MarinadeDS }) => {
 
-        let snapshotPointer;
-
+        let snapshotDSPointer;
+        let snapshotVotesPointer;
         if (date) {
-          snapshotPointer = snapshot.directStakeSnapshot.snapshots[0] as MarinadeDS
+          snapshotDSPointer = snapshot.directStakeSnapshot.snapshots[0] as MarinadeDS
+          snapshotVotesPointer = snapshot.voteStakeSnapshot.snapshots[0] as MarinadeDS
         } else {
-          snapshotPointer = snapshot.directStakeSnapshot
+          snapshotDSPointer = snapshot.directStakeSnapshot
+          snapshotVotesPointer = snapshot.voteStakeSnapshot
         }
-
         const totalPoolSize = await firstValueFrom(this.getPoolSize());
         const validators = await firstValueFrom(this.apiService.get(this.stakeWizApi))
         const msolPrice = await firstValueFrom(this.apiService.get(`${this.marinadeAPI}/msol/price_sol`))
-        const voteStakeRatio = await this.calcRatio(totalPoolSize * 0.2, snapshot.voteStakeSnapshot)
-        const directStakeRatio = await this.calcRatio(totalPoolSize * 0.2, snapshot.directStakeSnapshot, msolPrice);
-        const voteStake = this.createVotesArr(snapshot.voteStakeSnapshot, validators, voteStakeRatio, 'MNDE')
-        const directStake = this.createVotesArr(snapshotPointer, validators, directStakeRatio, 'SOL', msolPrice)
+        const voteStakeRatio = await this.calcRatio(totalPoolSize * 0.2, snapshotVotesPointer)
+        const directStakeRatio = await this.calcRatio(totalPoolSize * 0.2, snapshotDSPointer, msolPrice);
+        const voteStake = this.createVotesArr(snapshotVotesPointer, validators, voteStakeRatio, 'MNDE')
+        const directStake = this.createVotesArr(snapshotDSPointer, validators, directStakeRatio, 'SOL', msolPrice)
         // console.log(directStake, voteStake, directStakeRatio, voteStakeRatio, totalPoolSize)
         return { directStake, voteStake, directStakeRatio, voteStakeRatio, totalPoolSize };
       }),

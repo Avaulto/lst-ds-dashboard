@@ -71,6 +71,7 @@ export class VotesTableComponent implements AfterViewInit {
   }
 
   private _handleVotes(votes: Votes) {
+    // debugger
     this.loader = true
     // const votes: Votes = await firstValueFrom(this._directStakeService.getVotes())
     // const totalPoolSize = await firstValueFrom(this._directStakeService.getPoolSize());
