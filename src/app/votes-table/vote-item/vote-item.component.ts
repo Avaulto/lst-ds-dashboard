@@ -18,4 +18,7 @@ export class VoteItemComponent {
   //Add 'implements OnInit' to the class.
   // this.voter.walletOwner = this.addrUtil(this.voter.walletOwner).addrShort
  }
+ copyAddr(address:string){
+  navigator.clipboard.writeText(address)
+ }
 }

@@ -1,6 +1,6 @@
 
 <div class="stake-break-down" >
-    <span> {{addrUtil(voter.tokenOwner).addrShort}}</span>
+    <span (click)="copyAddr(voter.tokenOwner)"> {{addrUtil(voter.tokenOwner).addrShort}} <mat-icon fontIcon="content_copy"></mat-icon> </span>
     <span>
       {{voter.amount | number: '1.2'}} 
     </span>

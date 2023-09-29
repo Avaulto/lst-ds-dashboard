@@ -17,3 +17,11 @@
   #stake-source.voteSource{
     color:var(--text-color);
   }
+
+  mat-icon{
+    cursor: pointer;
+    transition: 0.3s ease;
+    &:hover{
+      color: var(--text-color);
+    }
+  }
