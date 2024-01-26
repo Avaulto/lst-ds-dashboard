@@ -62,7 +62,7 @@ export class DirectStakeService {
 
     let records = snapshot.records.filter(r => r.amount).map(record => {
 
-      const findValidatorName = validators.find((v: any) => v.vote_identity == record.validatorVoteAccount).name;
+      const findValidatorName = validators.find((v: any) => v.vote_identity == record.validatorVoteAccount)?.name || '';
 
       const amount = convertRatio ? Number(record.amount) * convertRatio : record.amount
       const directStake = amount * ratio
