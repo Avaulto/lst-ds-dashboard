@@ -107,7 +107,7 @@ export class DirectStakeService {
         const totalPoolSize = await firstValueFrom(this.getPoolSize());
         const validators = await firstValueFrom(this.apiService.get(this.stakeWizApi))
         const msolPrice = await firstValueFrom(this.apiService.get(`${this.marinadeAPI}/msol/price_sol`))
-        const voteStakeRatio = await this.calcRatio(totalPoolSize * 0.2, snapshotVotesPointer)
+        const voteStakeRatio = await (await firstValueFrom(this.apiService.get('https://native-staking-referral.marinade.finance/v1/rewards/all/season-2?pubkey=7K8DVxtNJGnMtUY1CQJT5jcs8sFGSZTDiG7kowvFpECh'))).governor.latestSolPerDirectedVemnde
         const directStakeRatio = await this.calcRatio(totalPoolSize * 0.2, snapshotDSPointer, msolPrice);
         const voteStake = this.createVotesArr(snapshotVotesPointer, validators, voteStakeRatio, 'MNDE')
         const directStake = this.createVotesArr(snapshotDSPointer, validators, directStakeRatio, 'SOL', msolPrice)
