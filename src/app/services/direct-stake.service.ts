@@ -121,6 +121,7 @@ export class DirectStakeService {
   solblazeDS(): Observable<{ directStake: Votes, voteStake: Votes, directStakeRatio: number, voteStakeRatio: number, totalPoolSize: number }> {
     return this.apiService.get(`${this.solblazeSnapshotAPI}`).pipe(
       switchMap(async (snapshot: SolblazeDS) => {
+        const bsolPrice = await (await fetch(`https://stake.solblaze.org/api/v1/conversion`)).json()
         const validators = await firstValueFrom(this.apiService.get(this.stakeWizApi))
         let records: Record[] = []
         Object.keys(snapshot.applied_stakes).map((r, i) => {
@@ -128,7 +129,7 @@ export class DirectStakeService {
 
             const validatorVoteAccount = r as any; // Object.keys(snapshot.applied_stakes) as any;
             const tokenOwner = Object.keys(snapshot.applied_stakes[r])[i] as any;
-            const amount: number = snapshot.applied_stakes[r][tokenOwner as any];
+            const amount: number = snapshot.applied_stakes[r][tokenOwner as any] * bsolPrice.conversion.bsol_to_sol;
             const validatorName = validators.find((v: any) => v.vote_identity == validatorVoteAccount)?.name || ''
 
             const directStake = amount * snapshot.boost.conversion
