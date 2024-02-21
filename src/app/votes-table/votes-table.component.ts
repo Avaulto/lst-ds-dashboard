@@ -24,7 +24,7 @@ import { animate, state, style, transition, trigger } from '@angular/animations'
 
 export class VotesTableComponent implements AfterViewInit {
   public today = new Date();
-  public columnsToDisplay: string[] = ['Stake Amount', 'Validator', 'Total Stake'];
+  public columnsToDisplay: string[] = ['Stake Amount', 'Validator','Num of stakers', 'Total Stake'];
   public columnsToDisplayWithExpand = [...this.columnsToDisplay, 'expand'];
   public expandedElement: any;
   public loader: boolean = true;
@@ -113,8 +113,8 @@ export class VotesTableComponent implements AfterViewInit {
         (accumulator, currentValue) => accumulator + Number(currentValue.directStake),
         0
       );
-
-      return { 'Stake Amount': voteAndStake, 'Total Stake': directStake, 'Validator': item.data[0].validatorName || item.data[0].validatorVoteAccount, breakDown: item.data }
+        const numOfStakers = item.data.length
+      return { 'Stake Amount': voteAndStake,'Num of stakers': numOfStakers,'Total Stake': directStake, 'Validator': item.data[0].validatorName || item.data[0].validatorVoteAccount, breakDown: item.data }
     })
     return evaluteTotals
 
