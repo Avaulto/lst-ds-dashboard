@@ -159,16 +159,16 @@ export class VotesTableComponent implements AfterViewInit {
       
     }
 
-    // this.voteRatio = this.stakeInfo.voteStakeRatio
-    // this.stakeRatio = this.stakeInfo.directStakeRatio
+    this.voteRatio = this.stakeInfo.voteStakeRatio
+    this.stakeRatio = this.stakeInfo.directStakeRatio
 
-    // const allStake = [...this.stakeInfo.directStake.records];
-    // if(this.defaultPoolName === 'marinade'){
-    //   allStake.push(...this.stakeInfo.voteStake.records)
-    // }
-    // const votes = {...this.stakeInfo.directStake}
-    // votes.records = allStake
-    // this._handleVotes(votes)
+    const allStake = [...this.stakeInfo.directStake.records];
+    if(this.defaultPoolName === 'marinade'){
+      allStake.push(...this.stakeInfo.voteStake.records)
+    }
+    const votes = {...this.stakeInfo.directStake}
+    votes.records = allStake
+    this._handleVotes(votes)
   }
   public reOrder(type: 'direct-stake' | 'votes', ev: any){
     if(type === 'direct-stake'){
