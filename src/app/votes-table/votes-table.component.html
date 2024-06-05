@@ -5,7 +5,7 @@
     </h1>
   <div id="meta-data">
 
-    <div class="p-color" *ngIf="defaultPoolName === 'marinade'">
+    <div class="p-color" *ngIf="defaultPoolName === 'marinade' || defaultPoolName === 'the-vault'">
       <span>snapshot date </span>
       <div>
         <div>
@@ -29,7 +29,7 @@
     </div>
 
     <div class="p-color">
-      <span>total controlled stake</span>
+      <span>total direct stake</span>
       <div id="total-control-stake"> {{totalDirectStake | number: '1.1'}} </div>
     </div>
   </div>
@@ -136,7 +136,7 @@
 <mat-paginator [pageSizeOptions]="[10, 15, 20]" showFirstLastButtons aria-label="Select page of periodic elements">
 </mat-paginator>
 
-<footer>
+<footer *ngIf="defaultPoolName != 'the-vault'">
 
   <a class="learn-more"  target="_blank" [href]="defaultPoolName === 'marinade' ?  dsGuideLink.marinadeDocs : dsGuideLink.solblazeDocs" target="_blank">
     How does {{defaultPoolName}} Directed Stake work?

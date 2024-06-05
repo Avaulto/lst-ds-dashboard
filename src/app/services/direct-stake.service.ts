@@ -52,6 +52,11 @@ export class DirectStakeService {
     if (pool === 'marinade') {
       dataSet = this.marinadeDS(date)
     }
+    if (pool === 'the-vault') {
+      console.log('fetch vsol');
+      
+      dataSet = this.vSOLDS(date)
+    }
     if (pool === 'solblaze') {
       dataSet = this.solblazeDS()
     }
@@ -117,7 +122,34 @@ export class DirectStakeService {
       catchError((error) => this._formatErrors(error))
     );
   }
-
+  vSOLDS(date: string){
+    const getDate = date ? this.getPreviousDay(new Date(date)) : null
+    return forkJoin({
+      directStakeSnapshot: this.apiService.get(`https://api.solanahub.app/api/vSOL/get-vSOL-direct-stake?date=${getDate}`),
+    }).pipe(
+      switchMap(async (snapshot: any) => {
+        console.log(snapshot);
+        
+        let snapshotDSPointer;
+        let snapshotVotesPointer;
+        if (date) {
+          snapshotDSPointer = snapshot.directStakeSnapshot.snapshots[0] as MarinadeDS
+          snapshotVotesPointer = snapshot.voteStakeSnapshot.snapshots[0] as MarinadeDS
+        } else {
+          snapshotDSPointer = snapshot.directStakeSnapshot
+          snapshotVotesPointer = snapshot.voteStakeSnapshot
+        }
+        const totalPoolSize = 123
+        const validators = await firstValueFrom(this.apiService.get(this.stakeWizApi))
+        const vsolPrice = 1
+        const directStakeRatio = 1
+        const directStake = this.createVotesArr(snapshotDSPointer, validators, directStakeRatio, 'SOL', vsolPrice)
+        // console.log(directStake, voteStake, directStakeRatio, voteStakeRatio, totalPoolSize)
+        return { directStake, voteStake: {}, directStakeRatio, voteStakeRatio: 0, totalPoolSize };
+      }),
+      catchError((error) => this._formatErrors(error))
+    );
+  }
   solblazeDS(): Observable<{ directStake: Votes, voteStake: Votes, directStakeRatio: number, voteStakeRatio: number, totalPoolSize: number }> {
     return this.apiService.get(`${this.solblazeSnapshotAPI}`).pipe(
       switchMap(async (snapshot: SolblazeDS) => {

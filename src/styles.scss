@@ -21,3 +21,11 @@ body {
     --text-color: #00ff9f;
     --text2-color: white;
   }
+
+
+ html[data-theme="the-vault"] {
+   --main-color: #f7f5f3;
+   --bold-color: #ff6304;
+   --text-color: #000000;
+   --text2-color: #000000;
+ }
