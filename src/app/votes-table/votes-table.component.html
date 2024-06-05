@@ -119,7 +119,7 @@
             stake:
           </span>
         </div>
-        <app-vote-item *ngFor="let voter of element.breakDown" [poolSize]="stakeInfo.totalPoolSize" [voter]="voter"></app-vote-item>
+        <app-vote-item *ngFor="let voter of element.breakDown" [poolSize]="stakeInfo?.totalPoolSize" [voter]="voter"></app-vote-item>
       </div>
     </td>
   </ng-container>

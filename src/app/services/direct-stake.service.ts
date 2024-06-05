@@ -27,7 +27,7 @@ export class DirectStakeService {
 
   private getPreviousDay(date = new Date()) {
     const previous = new Date(date.getTime());
-    previous.setDate(date.getDate() - 1);
+    previous.setDate(date.getDate());
 
     return this.formatDate(previous);
   }
@@ -53,8 +53,6 @@ export class DirectStakeService {
       dataSet = this.marinadeDS(date)
     }
     if (pool === 'the-vault') {
-      console.log('fetch vsol');
-      
       dataSet = this.vSOLDS(date)
     }
     if (pool === 'solblaze') {
@@ -64,7 +62,8 @@ export class DirectStakeService {
   }
   private createVotesArr(snapshot: MarinadeDS, validators: any, ratio: number, source: 'SOL' | 'MNDE' | 'BLZE', convertRatio?: number): Votes {
 
-
+    console.log(snapshot.records);
+    
     let records = snapshot.records.filter(r => r.amount).map(record => {
 
       const findValidatorName = validators.find((v: any) => v.vote_identity == record.validatorVoteAccount)?.name || '';
@@ -122,30 +121,20 @@ export class DirectStakeService {
       catchError((error) => this._formatErrors(error))
     );
   }
-  vSOLDS(date: string){
-    const getDate = date ? this.getPreviousDay(new Date(date)) : null
+  private vSOLDS(date: string){
+    const getDate = date ? this.formatDate(new Date(date)) : null
     return forkJoin({
       directStakeSnapshot: this.apiService.get(`https://api.solanahub.app/api/vSOL/get-vSOL-direct-stake?date=${getDate}`),
     }).pipe(
       switchMap(async (snapshot: any) => {
-        console.log(snapshot);
-        
-        let snapshotDSPointer;
-        let snapshotVotesPointer;
-        if (date) {
-          snapshotDSPointer = snapshot.directStakeSnapshot.snapshots[0] as MarinadeDS
-          snapshotVotesPointer = snapshot.voteStakeSnapshot.snapshots[0] as MarinadeDS
-        } else {
-          snapshotDSPointer = snapshot.directStakeSnapshot
-          snapshotVotesPointer = snapshot.voteStakeSnapshot
-        }
+   
         const totalPoolSize = 123
         const validators = await firstValueFrom(this.apiService.get(this.stakeWizApi))
         const vsolPrice = 1
         const directStakeRatio = 1
-        const directStake = this.createVotesArr(snapshotDSPointer, validators, directStakeRatio, 'SOL', vsolPrice)
+        const directStake = this.createVotesArr(snapshot.directStakeSnapshot, validators, directStakeRatio, 'SOL', vsolPrice)
         // console.log(directStake, voteStake, directStakeRatio, voteStakeRatio, totalPoolSize)
-        return { directStake, voteStake: {}, directStakeRatio, voteStakeRatio: 0, totalPoolSize };
+        return { directStake, voteStake: {}, directStakeRatio, voteStakeRatio: 1, totalPoolSize };
       }),
       catchError((error) => this._formatErrors(error))
     );

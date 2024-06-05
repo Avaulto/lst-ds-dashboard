@@ -151,17 +151,24 @@ export class VotesTableComponent implements AfterViewInit {
     this.defaultPoolName = poolName.toLowerCase()
 
     this.poolIcon = `assets/${this.defaultPoolName}-logo.png`
-    this.stakeInfo = await firstValueFrom(this._directStakeService.getVotes(this.defaultPoolName))
-    this.voteRatio = this.stakeInfo.voteStakeRatio
-    this.stakeRatio = this.stakeInfo.directStakeRatio
-
-    const allStake = [...this.stakeInfo.directStake.records];
-    if(this.defaultPoolName === 'marinade'){
-      allStake.push(...this.stakeInfo.voteStake.records)
+    try {
+      this.stakeInfo = await firstValueFrom(this._directStakeService.getVotes(this.defaultPoolName))
+      
+    } catch (error) {
+      console.log(error);
+      
     }
-    const votes = {...this.stakeInfo.directStake}
-    votes.records = allStake
-    this._handleVotes(votes)
+
+    // this.voteRatio = this.stakeInfo.voteStakeRatio
+    // this.stakeRatio = this.stakeInfo.directStakeRatio
+
+    // const allStake = [...this.stakeInfo.directStake.records];
+    // if(this.defaultPoolName === 'marinade'){
+    //   allStake.push(...this.stakeInfo.voteStake.records)
+    // }
+    // const votes = {...this.stakeInfo.directStake}
+    // votes.records = allStake
+    // this._handleVotes(votes)
   }
   public reOrder(type: 'direct-stake' | 'votes', ev: any){
     if(type === 'direct-stake'){
