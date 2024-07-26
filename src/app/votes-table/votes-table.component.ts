@@ -41,7 +41,7 @@ export class VotesTableComponent implements AfterViewInit {
   public totalDirectStake: number = 0
   public viewDirectStake: boolean = true
   public viewVoteStake: boolean = true
-  public defaultPoolName = 'marinade';
+  public defaultPoolName = 'solblaze';
   public poolIcon = ''
   public queryURL: boolean = false;
   constructor(
@@ -59,6 +59,7 @@ export class VotesTableComponent implements AfterViewInit {
 
   }
   async ngAfterViewInit() {
+    this._directStakeService.solblazeDSvotes()
     const queryString = window.location.search;
     const urlParams = new URLSearchParams(queryString);
     const pool = urlParams.get('pool')
@@ -104,7 +105,7 @@ export class VotesTableComponent implements AfterViewInit {
         (accumulator, currentValue) => accumulator + Number(currentValue.amount),
         0
       );
-      const totalVoteAmount = item.data.filter(r => r.source === 'MNDE').reduce(
+      const totalVoteAmount = item.data.filter(r => r.source === 'MNDE' || r.source === 'BLZE').reduce(
         (accumulator, currentValue) => accumulator + Number(currentValue.amount),
         0
       );
@@ -153,14 +154,16 @@ export class VotesTableComponent implements AfterViewInit {
     this.poolIcon = `assets/${this.defaultPoolName}-logo.png`
     try {
       this.stakeInfo = await firstValueFrom(this._directStakeService.getVotes(this.defaultPoolName))
+      console.log('stake data', this.stakeInfo);
       
     } catch (error) {
       console.log(error);
       
     }
-
+    
     this.voteRatio = this.stakeInfo.voteStakeRatio
     this.stakeRatio = this.stakeInfo.directStakeRatio
+    console.log( this.voteRatio, this.stakeInfo.voteStakeRatio);
 
     const allStake = [...this.stakeInfo.directStake.records];
     if(this.defaultPoolName === 'marinade'){

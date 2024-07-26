@@ -62,8 +62,6 @@ export class DirectStakeService {
   }
   private createVotesArr(snapshot: MarinadeDS, validators: any, ratio: number, source: 'SOL' | 'MNDE' | 'BLZE', convertRatio?: number): Votes {
 
-    console.log(snapshot.records);
-    
     let records = snapshot.records.filter(r => r.amount).map(record => {
 
       const findValidatorName = validators.find((v: any) => v.vote_identity == record.validatorVoteAccount)?.name || '';
@@ -167,8 +165,8 @@ export class DirectStakeService {
           })
           // console.log(re)
         })
-        // const aggigateVote = this.createVotesArr(records)
-        let votes: Votes = {
+        // const aggregateVote = this.createVotesArr(records)
+        let directStake: Votes = {
           snapshotCreatedAt: null,
           records,
           voteRecordsCreatedAt: '0',
@@ -176,15 +174,60 @@ export class DirectStakeService {
           // snapshots: null // only on ranges query
         }
         // return votes
-        return { directStake: votes, voteStake: {} as Votes, directStakeRatio: snapshot.boost.conversion, voteStakeRatio: 0, totalPoolSize: snapshot.boost.pool };
+        const voteStake = await this.solblazeDSvotes()
+
+        return { directStake, voteStake, directStakeRatio: snapshot.boost.conversion, voteStakeRatio:voteStake.conversionRate, totalPoolSize: snapshot.boost.pool };
 
       }),
-      map((data) => {
-        return data;
-      }),
+  
       // catchError((error) => this._formatErrors(error))
     );
   }
+ async solblazeDSvotes() {
+    // return this.apiService.get(`https://stake.solblaze.org/api/v1/gauges_applied`).pipe(
+      const snapshot: any = await ((await fetch(`https://stake.solblaze.org/api/v1/gauges_applied`)).json())
+      // switchMap(async (snapshot: SolblazeDS) => {
+        // const blzePrice = await (await fetch(`https://stake.solblaze.org/api/v1/gauges_applied`)).json()
+        const validators = await firstValueFrom(this.apiService.get(this.stakeWizApi))
+        let records: Record[] = []
+        Object.keys(snapshot.votes).map((r, i) => {
+          let re = Object.keys(snapshot.votes[r]).map((v, i) => {
+
+            const validatorVoteAccount = r as any; // Object.keys(snapshot.applied_stakes) as any;
+            const tokenOwner = Object.keys(snapshot.votes[r])[i] as any;
+            const amount: number = snapshot.votes[r][tokenOwner as any] 
+            const validatorName = validators.find((v: any) => v.vote_identity == validatorVoteAccount)?.name || ''
+
+            const directStake = amount * snapshot.stats.conversion;
+            let record: Record = {
+              amount,
+              tokenOwner,
+              validatorName,
+              validatorVoteAccount,
+              directStake,
+              source: 'BLZE'
+            }
+            records.push(record)
+            return record;
+          })
+          // console.log(re)
+        })
+        // const aggigateVote = this.createVotesArr(records)
+        let votes: Votes = {
+          snapshotCreatedAt: null,
+          records,
+          voteRecordsCreatedAt: '0',
+          conversionRate: snapshot.stats.conversion,
+          // snapshots: null // only on ranges query
+        }
+        // return votes
+        console.log(votes);
+        
+        return votes;
+
+   
+  }
+
   private async calcRatio(SOL_total_allocated_stake: number, dataset: MarinadeDS, convertRatio: number = 1): Promise<number> {
     let stakeRatio = 0
     try {

@@ -17,9 +17,9 @@
       </div>
     </div>
     <div class="p-color">
-      <div *ngIf="defaultPoolName === 'marinade'">
-        <span>MNDE vote ratio</span>
-        <div>1/{{voteRatio | number: '1.1'}} </div>
+      <div *ngIf="defaultPoolName !== 'the-vault'">
+        <span>{{defaultPoolName === 'marinade' ? 'MNDE' : 'BLZE'}} vote ratio</span>
+        <div>1/{{voteRatio | number: '1.6'}} </div>
       </div>
       <div>
 
@@ -46,9 +46,9 @@
       <mat-label>Filter</mat-label>
       <input matInput (keyup)="applyFilter($event)" placeholder="search by any term" #input>
     </mat-form-field>
-    <section class="example-section" *ngIf="defaultPoolName === 'marinade'">
+    <section class="example-section" *ngIf="defaultPoolName !== 'the-vault'">
       <mat-checkbox (change)="reOrder('direct-stake',$event)" [checked]="viewDirectStake" class="bold-color">SOL direct stake</mat-checkbox>
-      <mat-checkbox (change)="reOrder('votes', $event)" [checked]="viewVoteStake" >veMNDE votes</mat-checkbox>
+      <mat-checkbox (change)="reOrder('votes', $event)" [checked]="viewVoteStake" >ve{{defaultPoolName === 'marinade' ? 'MNDE' : 'BLZE'}} votes</mat-checkbox>
     </section>
     
     <!-- <mat-form-field appearance="fill" *ngIf="defaultPoolName === 'marinade'">
@@ -83,7 +83,7 @@
       <ng-container  *ngIf="column === 'Stake Amount' || column === 'Total Stake'; else elseTemplate">
         
         {{element[column] | number}}
-        <mat-icon *ngIf="element.source ==  'MNDE' && element[column].amount > stakeInfo.poolSize * 0.02" aria-hidden="false"  matTooltip="Stake size is bigger then delegation strategy is allowing, consider vote to another validator" fontIcon="warning"></mat-icon>
+        <mat-icon *ngIf="element.source ==  'MNDE' || element.source ==  'BLZE' && element[column].amount > stakeInfo.poolSize * 0.02" aria-hidden="false"  matTooltip="Stake size is bigger then delegation strategy is allowing, consider vote to another validator" fontIcon="warning"></mat-icon>
 
       </ng-container>
       <ng-template #elseTemplate>
