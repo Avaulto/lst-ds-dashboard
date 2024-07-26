@@ -59,7 +59,7 @@ export class VotesTableComponent implements AfterViewInit {
 
   }
   async ngAfterViewInit() {
-    this._directStakeService.solblazeDSvotes()
+
     const queryString = window.location.search;
     const urlParams = new URLSearchParams(queryString);
     const pool = urlParams.get('pool')
@@ -154,6 +154,7 @@ export class VotesTableComponent implements AfterViewInit {
     this.poolIcon = `assets/${this.defaultPoolName}-logo.png`
     try {
       this.stakeInfo = await firstValueFrom(this._directStakeService.getVotes(this.defaultPoolName))
+ 
       console.log('stake data', this.stakeInfo);
       
     } catch (error) {
@@ -166,7 +167,7 @@ export class VotesTableComponent implements AfterViewInit {
     console.log( this.voteRatio, this.stakeInfo.voteStakeRatio);
 
     const allStake = [...this.stakeInfo.directStake.records];
-    if(this.defaultPoolName === 'marinade'){
+    if(this.defaultPoolName !== 'the-vault'){
       allStake.push(...this.stakeInfo.voteStake.records)
     }
     const votes = {...this.stakeInfo.directStake}

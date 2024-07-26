@@ -174,7 +174,7 @@ export class DirectStakeService {
           // snapshots: null // only on ranges query
         }
         // return votes
-        const voteStake = await this.solblazeDSvotes()
+        const voteStake = await this.solblazeDSvotes(validators)
 
         return { directStake, voteStake, directStakeRatio: snapshot.boost.conversion, voteStakeRatio:voteStake.conversionRate, totalPoolSize: snapshot.boost.pool };
 
@@ -183,12 +183,11 @@ export class DirectStakeService {
       // catchError((error) => this._formatErrors(error))
     );
   }
- async solblazeDSvotes() {
+ async solblazeDSvotes(validators: any) {
     // return this.apiService.get(`https://stake.solblaze.org/api/v1/gauges_applied`).pipe(
       const snapshot: any = await ((await fetch(`https://stake.solblaze.org/api/v1/gauges_applied`)).json())
       // switchMap(async (snapshot: SolblazeDS) => {
         // const blzePrice = await (await fetch(`https://stake.solblaze.org/api/v1/gauges_applied`)).json()
-        const validators = await firstValueFrom(this.apiService.get(this.stakeWizApi))
         let records: Record[] = []
         Object.keys(snapshot.votes).map((r, i) => {
           let re = Object.keys(snapshot.votes[r]).map((v, i) => {
@@ -220,8 +219,6 @@ export class DirectStakeService {
           conversionRate: snapshot.stats.conversion,
           // snapshots: null // only on ranges query
         }
-        // return votes
-        console.log(votes);
         
         return votes;
 
