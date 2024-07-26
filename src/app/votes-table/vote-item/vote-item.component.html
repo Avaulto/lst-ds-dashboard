@@ -7,7 +7,7 @@
     <span id="stake-source" [class.voteSource]="voter.source ==  'MNDE' || voter.source ==  'BLZE'">{{voter.source}} </span>
     <span>{{voter.directStake | number: '1.2'}}
 
-      <mat-icon *ngIf="voter.source ==  'MNDE' || voter.source ==  'BLZE'&& voter.amount > poolSize * 0.02" aria-hidden="false"  matTooltip="Stake size is bigger than delegation strategy is allowing, consider vote to another validator" fontIcon="warning"></mat-icon>
+      <!-- <mat-icon *ngIf="voter.source ==  'MNDE' || voter.source ==  'BLZE'&& voter.amount > poolSize * 0.02" aria-hidden="false"  matTooltip="Stake size is bigger than delegation strategy is allowing, consider vote to another validator" fontIcon="warning"></mat-icon> -->
 
     </span>
   </div>
