@@ -148,7 +148,7 @@ export class DirectStakeService {
 
             const validatorVoteAccount = r as any; // Object.keys(snapshot.applied_stakes) as any;
             const tokenOwner = Object.keys(snapshot.applied_stakes[r])[i] as any;
-            const amount: number = snapshot.applied_stakes[r][tokenOwner as any] * bsolPrice.conversion.bsol_to_sol;
+            const amount: number = snapshot.applied_stakes[r][tokenOwner as any];
             const validatorName = validators.find((v: any) => v.vote_identity == validatorVoteAccount)?.name || ''
 
             const directStake = amount * snapshot.boost.conversion
